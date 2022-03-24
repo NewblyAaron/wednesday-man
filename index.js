@@ -24,7 +24,10 @@ client.getChannel = function (guildId) {
       return null;
     }
 
-    return res.rows[0].channel_id;
+    const channelId = res.rows[0].channel_id;
+    console.log(`Successfully got ${guildId}'s channel: ${channelId}`);
+    
+    return channelId;
   });
 };
 
@@ -55,8 +58,6 @@ client.once('ready', () => {
         return;
       }
 
-      console.log(res);
-
       if (res.rows[0].exists === false) {
         console.log("Table not found. Creating one!");
         dbClient.query("CREATE TABLE public.settings ( guild_id text NOT NULL, channel_id text NOT NULL, CONSTRAINT settings_pk PRIMARY KEY (guild_id));", (err, res) => {
@@ -66,8 +67,11 @@ client.once('ready', () => {
             return;
           }
         });
+      } else {
+        console.log("Settings table exists!");
       }
     });
+    console.log("Database setup successful!");
 
     // wednesday checker
     const itIsWednesday = Cron('00 00 00 * * 3', { timezone: "Asia/Manila" } , () => {
