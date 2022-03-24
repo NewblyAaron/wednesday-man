@@ -11,11 +11,7 @@ const token = process.env.BOT_TOKEN;
 // Client Instance
 const client = new Client({ intents: [new Intents(32767)] });
 const dbClient = new pg.Client({
-  host: "127.0.0.1",
-  user: "postgres",
-  password: "root",
-  port: 5432,
-  database: "postgres"
+  connectionString: process.env.DATABASE_URL,
 });
 
 dbClient.connect();
