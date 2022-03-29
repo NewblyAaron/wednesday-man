@@ -74,7 +74,7 @@ client.once('ready', () => {
     console.log("Database setup successful!");
 
     // wednesday checker
-    const itIsWednesday = Cron('01 10 00 * * 3', { timezone: "Asia/Manila" } , () => {
+    const itIsWednesday = Cron('00 00 00 * * 3', { timezone: "Asia/Manila" } , () => {
         console.log("it is now wednesday");
         client.guilds.cache.map(guild => {
           try {

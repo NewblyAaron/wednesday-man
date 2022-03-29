@@ -21,7 +21,6 @@ module.exports = {
         const cronJob = client.cronJob;
         const nextDate = cronJob.next();
         console.log(`Current date and time: ${date.toUTCString()}\nConverted date to timezone: ${currentDate.toUTCString()}\nNext date and time to run Wednesday: ${nextDate}`);
-        console.log(client.cronJob);
 
         if (currentDate.getDay() == 3 || interaction.options.getBoolean('always_wednesday')) {
             const video = new MessageAttachment('./videos/wednesday.mp4');
