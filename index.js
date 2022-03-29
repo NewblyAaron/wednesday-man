@@ -71,7 +71,7 @@ client.once('ready', () => {
         console.log("Settings table exists!");
       }
     });
-    console.log("Database setup successful!");
+    console.log("Database setup done!");
 
     // wednesday checker
     const itIsWednesday = Cron('00 00 00 * * 3', { timezone: "Asia/Manila" } , () => {
@@ -92,6 +92,7 @@ client.once('ready', () => {
           }
         });
     });
+    console.log(itIsWednesday.next());
     client.cronJob = itIsWednesday;
 
   const itIsNotWednesdayAnymore = Cron('00 00 00 * * 4', { timezone: "Asia/Manila" } , () => {
@@ -112,6 +113,7 @@ client.once('ready', () => {
           }
         });
     });
+    console.log(itIsNotWednesdayAnymore.next());
 });
 
 client.on('interactionCreate', async interaction => {
