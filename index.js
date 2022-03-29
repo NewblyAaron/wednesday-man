@@ -78,7 +78,7 @@ client.once('ready', () => {
         console.log("it is now wednesday");
         client.guilds.cache.map(guild => {
           try {
-            const guildChannel = client.getChannelIdOfGuild(guild.id);
+            const guildChannel = client.getChannelId(guild.id);
             if (guildChannel == null) return console.log(`${guild.id} has no saved channel to send to!`);
             const channel = guild.channels.cache.get(guildChannel.channel_id);
             const video = new MessageAttachment('./videos/wednesday.mp4');
@@ -98,7 +98,7 @@ client.once('ready', () => {
         console.log("it is not wednesday anymore");
         client.guilds.cache.map(guild => {
           try {
-            const guildChannel = client.getChannelIdOfGuild(guild.id);
+            const guildChannel = client.getChannelId(guild.id);
             if (guildChannel == null) return console.log(`${guild.id} has no saved channel to send to!`);
             const channel = guild.channels.cache.get(guildChannel.channel_id);
             const photo = new MessageAttachment('./photos/n.png');
