@@ -11,6 +11,7 @@ module.exports = {
                 .setRequired(false)
         ),
 	async execute(interaction) {
+        client = interaction.client;
         var user;
         do {
             if (!(interaction.options.getUser('user') == null)) {
@@ -25,7 +26,14 @@ module.exports = {
 			'./videos/deadbydaylight.mp4', './videos/sinkomomentos.mp4', './videos/platinum.mp4', 
 			'./videos/horsecat.mp4', './videos/plane.mp4', './videos/turbo.mp4', './videos/dora.mp4'
         ];
-        const video = randomvids[Math.floor(Math.random() * randomvids.length)];
+
+        var randomIndex = -1;
+        do {
+            randomIndex = Math.floor(Math.random() * randomvids.length);
+        } while (client.lastThreeBothers.includes(randomIndex))
+        client.updateLastThreeBothers(randomIndex);
+
+        const video = randomvids[randomIndex];
         const file = new MessageAttachment(video);
         await interaction.reply({content: `${user}`, files: [file]});
 	},
