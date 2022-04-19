@@ -11,7 +11,7 @@ module.exports = {
 		.setName('zamn')
 		.setDescription('ZAMN'),
 	async execute(interaction) {
-        const video = new MessageAttachment('./zamn.mp4');
+        const video = new MessageAttachment('./videos/zamn.mp4');
         await interaction.reply({ content: "ZAMN",  files: [video] });
 	},
 };
