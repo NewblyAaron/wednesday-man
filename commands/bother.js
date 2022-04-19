@@ -1,3 +1,4 @@
+const fs = require('node:fs');
 const { MessageAttachment } = require('discord.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 
@@ -11,7 +12,7 @@ module.exports = {
                 .setRequired(false)
         ),
 	async execute(interaction) {
-        client = interaction.client;
+        const client = interaction.client;
         var user;
         do {
             if (!(interaction.options.getUser('user') == null)) {
@@ -20,20 +21,15 @@ module.exports = {
             }
             user = interaction.guild.members.cache.random().user;
         } while (user.bot == true)
-        const randomvids = [
-            './videos/car_scare.mp4', './videos/deltarune.mp4', './videos/deploy_freddy.mp4', 
-            './videos/table_scare.mp4', './videos/segs.mp4', './videos/tumingin.mp4', './videos/nike.mp4', 
-			'./videos/deadbydaylight.mp4', './videos/sinkomomentos.mp4', './videos/platinum.mp4', 
-			'./videos/horsecat.mp4', './videos/plane.mp4', './videos/turbo.mp4', './videos/dora.mp4'
-        ];
 
+        const media = fs.readdirSync('./bother');
         var randomIndex = -1;
         do {
-            randomIndex = Math.floor(Math.random() * randomvids.length);
+            randomIndex = Math.floor(Math.random() * media.length);
         } while (client.lastThreeBothers.includes(randomIndex))
         client.updateLastThreeBothers(randomIndex);
 
-        const video = randomvids[randomIndex];
+        const video = media[randomIndex];
         const file = new MessageAttachment(video);
         await interaction.reply({content: `${user}`, files: [file]});
 	},
