@@ -6,7 +6,7 @@ module.exports = {
 		.setDescription('Unsets the channel to send to when it is wednesday'),
 	async execute(interaction) {
 		const client = interaction.client;
-		const guildId = chosenChannel.guildId;
+		const guildId = interaction.guildId;
 
 		if (client.delChannel(guildId)) {
 			await interaction.reply({ content: `Removed set channel.`, ephemeral: true });
