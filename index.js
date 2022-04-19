@@ -9,7 +9,6 @@ const {
   Collection,
   Intents,
   MessageAttachment,
-  DiscordAPIError,
 } = require("discord.js");
 const clientId = process.env.BOT_CLIENT_ID;
 const token = process.env.BOT_TOKEN;
@@ -18,31 +17,14 @@ const token = process.env.BOT_TOKEN;
 const client = new Client({ intents: [new Intents(32767)] });
 const dbClient = new pg.Client({
   connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false,
+  },
 });
 
 dbClient.connect();
 
-// functions for getting and setting channels
-client.getChannel = function (guildId) {
-  dbClient.query(
-    `SELECT channel_id FROM public.settings WHERE guild_id = '${guildId}'`,
-    (err, res) => {
-      if (err) {
-        console.log(
-          "An error has occured in getting the channel ID of a guild!"
-        );
-        console.log(err);
-        return null;
-      }
-
-      const channelId = res.rows[0].channel_id;
-      console.log(`Successfully got ${guildId}'s channel: ${channelId}`);
-
-      return channelId;
-    }
-  );
-};
-
+// function for setting channel
 client.setChannel = function (guildId, channelId) {
   // "INSERT OR REPLACE INTO settings (guild_id, channel_id) VALUES (@guild_id, @channel_id);"
   const sqlCommand = `INSERT INTO public.settings (guild_id, channel_id) VALUES ('${guildId}', '${channelId}') ON CONFLICT (guild_id) DO UPDATE SET guild_id = excluded.guild_id, channel_id = excluded.channel_id;`;
@@ -91,33 +73,6 @@ client.once("ready", () => {
   );
   console.log("Database setup done!");
 
-  // wednesday checker
-  const itIsWednesday = Cron(
-    "00 00 00 * * 3",
-    { timezone: "Asia/Manila" },
-    () => {
-      console.log("it is now wednesday");
-      client.guilds.cache.map((guild) => {
-        try {
-          const guildChannel = client.getChannel(guild.id);
-          if (guildChannel == null)
-            return console.log(`${guild.id} has no saved channel to send to!`);
-          const channel = guild.channels.cache.get(guildChannel.channel_id);
-          const video = new MessageAttachment("./videos/wednesday.mp4");
-          channel.send({
-            content: "it is wednesday my dudes",
-            files: [video],
-          });
-        } catch (error) {
-          console.log(`Error in ${guild.name} (${guild.id}):`);
-          console.log(error);
-        }
-      });
-    }
-  );
-  console.log(itIsWednesday.next());
-  client.cronJob = itIsWednesday;
-
   // for bother command
   client.lastThreeBothers = [-1, -2, -3];
   client.updateLastThreeBothers = function (newIndex) {
@@ -130,31 +85,40 @@ client.once("ready", () => {
 
     client.lastThreeBothers = lastThree;
   };
+});
 
-  const itIsNotWednesdayAnymore = Cron(
-    "00 00 00 * * 4",
+client.on("ready", async () => {
+  // wednesday checker
+  const itIsWednesday = Cron(
+    "00 00 00 * * 3",
     { timezone: "Asia/Manila" },
     () => {
-      console.log("it is not wednesday anymore");
-      client.guilds.cache.map((guild) => {
-        try {
-          const guildChannel = client.getChannel(guild.id);
-          if (guildChannel == null)
-            return console.log(`${guild.id} has no saved channel to send to!`);
-          const channel = guild.channels.cache.get(guildChannel.channel_id);
-          const photo = new MessageAttachment("./photos/n.png");
-          channel.send({
-            content: "it is not wednesday anymore my dudes",
-            files: [photo],
-          });
-        } catch (error) {
-          console.log(`Error in ${guild.name} (${guild.id}):`);
-          console.log(error);
+      console.log("it is now wednesday");
+
+      dbClient.query("SELECT * FROM settings", (err, res) => {
+        if (err) {
+          console.log(err);
+          return;
         }
+
+        const rows = res.rows;
+
+        rows.forEach((row) => {
+          const guild = client.guilds.cache.get(row.guild_id);
+          const channel = guild.channels.cache.get(row.channel_id);
+          
+          console.log(`Sending wednesday to ${guild.name} @ ${channel.name}`)
+          const video = new MessageAttachment("./videos/wednesday.mp4");
+          channel.send({
+            content: "it is wednesday my dudes",
+            files: [video],
+          });
+        })
       });
     }
   );
-  console.log(itIsNotWednesdayAnymore.next());
+  console.log(itIsWednesday.next());
+  client.cronJob = itIsWednesday;
 });
 
 client.on("interactionCreate", async (interaction) => {
