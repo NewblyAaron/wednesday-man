@@ -24,7 +24,7 @@ const dbClient = new pg.Client({
 
 dbClient.connect();
 
-// function for setting channel
+// function for setting and deleting channel
 client.setChannel = function (guildId, channelId) {
   // "INSERT OR REPLACE INTO settings (guild_id, channel_id) VALUES (@guild_id, @channel_id);"
   const sqlCommand = `INSERT INTO public.settings (guild_id, channel_id) VALUES ('${guildId}', '${channelId}') ON CONFLICT (guild_id) DO UPDATE SET guild_id = excluded.guild_id, channel_id = excluded.channel_id;`;
@@ -42,8 +42,8 @@ client.setChannel = function (guildId, channelId) {
 };
 
 client.delChannel = function (guildId) {
-  // "DELETE FROM settings WHERE guild_id = @guild_id"
-  const sqlCommand = `DELETE FROM settings WHERE guild_id = "${guildId}"`;
+  // "DELETE FROM settings WHERE guild_id=@guild_id"
+  const sqlCommand = `DELETE FROM settings WHERE guild_id='${guildId}'`;
   dbClient.query(sqlCommand, (err, res) => {
     if (err) {
       console.log("An error has occured in deleting a row!");
