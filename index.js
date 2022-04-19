@@ -25,36 +25,42 @@ const dbClient = new pg.Client({
 dbClient.connect();
 
 // function for setting and deleting channel
-client.setChannel = function (guildId, channelId) {
-  // "INSERT OR REPLACE INTO settings (guild_id, channel_id) VALUES (@guild_id, @channel_id);"
-  const sqlCommand = `INSERT INTO public.settings (guild_id, channel_id) VALUES ('${guildId}', '${channelId}') ON CONFLICT (guild_id) DO UPDATE SET guild_id = excluded.guild_id, channel_id = excluded.channel_id;`;
-  dbClient.query(sqlCommand, (err, res) => {
-    if (err) {
-      console.log("An error has occured in setting the channel ID of a guild!");
-      console.log(err);
-      return false;
-    }
-
+client.setChannel = async function (guildId, channelId) {
+  const query = {
+    text: "INSERT INTO public.settings (guild_id, channel_id) VALUES ($1, $2) ON CONFLICT (guild_id) DO UPDATE SET guild_id = excluded.guild_id, channel_id = excluded.channel_id;",
+    values: [guildId, channelId],
+  }
+  
+  try {
+    await dbClient.query(query);
     console.log(`Successfully set ${guildId}'s channel to ${channelId}`);
-  });
-
-  return true;
+    return true;
+  } catch (err) {
+    console.log(err);
+    return false;
+  }
 };
 
-client.delChannel = function (guildId) {
-  // "DELETE FROM settings WHERE guild_id=@guild_id"
-  const sqlCommand = `DELETE FROM settings WHERE guild_id='${guildId}'`;
-  dbClient.query(sqlCommand, (err, res) => {
-    if (err) {
-      console.log("An error has occured in deleting a row!");
-      console.log(err);
-      return false;
+client.delChannel = async function (guildId) {
+  const query = {
+    text: "DELETE FROM settings WHERE guild_id=$1",
+    values: [guildId],
+  }
+  
+  try {
+    const res = await dbClient.query(query);
+
+    if (res.rowCount == 0) {
+      console.log(`${guildId} doesn't exist in table!`);
+      return 0;
     }
 
     console.log(`Successfully deleted ${guildId} row`);
-  });
-
-  return true;
+    return 1;
+  } catch (err) {
+    console.log(err);
+    return -1;
+  }
 };
 
 client.once("ready", () => {

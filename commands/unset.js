@@ -8,8 +8,11 @@ module.exports = {
 		const client = interaction.client;
 		const guildId = interaction.guildId;
 
-		if (client.delChannel(guildId)) {
+		const result = await client.delChannel(guildId);
+		if (result == 1) {
 			await interaction.reply({ content: `Removed set channel.`, ephemeral: true });
+		} else if (result == 0) {
+			await interaction.reply({ content: `No set channels.`, ephemeral: true });
 		} else {
 			await interaction.reply({ content: `Error!`, ephemeral: true });
 		}

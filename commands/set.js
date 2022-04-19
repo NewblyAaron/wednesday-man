@@ -14,7 +14,7 @@ module.exports = {
 		const channelId = chosenChannel.id;
 		const guildId = chosenChannel.guildId;
 
-		if (client.setChannel(guildId, channelId)) {
+		if (await client.setChannel(guildId, channelId)) {
 			await interaction.reply({ content: `Set the channel to ${chosenChannel}`, ephemeral: true });
 		} else {
 			await interaction.reply({ content: `Error!`, ephemeral: true });
