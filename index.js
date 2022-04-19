@@ -41,6 +41,22 @@ client.setChannel = function (guildId, channelId) {
   return true;
 };
 
+client.delChannel = function (guildId) {
+  // "DELETE FROM settings WHERE guild_id = @guild_id"
+  const sqlCommand = `DELETE FROM settings WHERE guild_id = "${guildId}"`;
+  dbClient.query(sqlCommand, (err, res) => {
+    if (err) {
+      console.log("An error has occured in deleting a row!");
+      console.log(err);
+      return false;
+    }
+
+    console.log(`Successfully deleted ${guildId} row`);
+  });
+
+  return true;
+};
+
 client.once("ready", () => {
   console.log(`Bot running as ${client.user.tag}`);
 
@@ -72,19 +88,6 @@ client.once("ready", () => {
     }
   );
   console.log("Database setup done!");
-
-  // for bother command
-  client.lastThreeBothers = [-1, -2, -3];
-  client.updateLastThreeBothers = function (newIndex) {
-    lastThree = client.lastThreeBothers;
-
-    lastThree.push(newIndex);
-    lastThree.shift();
-
-    console.log(lastThree);
-
-    client.lastThreeBothers = lastThree;
-  };
 });
 
 client.on("ready", async () => {
@@ -106,17 +109,30 @@ client.on("ready", async () => {
         rows.forEach((row) => {
           const guild = client.guilds.cache.get(row.guild_id);
           const channel = guild.channels.cache.get(row.channel_id);
-          
-          console.log(`Sending wednesday to ${guild.name} @ ${channel.name}`)
+
+          console.log(`Sending wednesday to ${guild.name} @ ${channel.name}`);
           const video = new MessageAttachment("./videos/wednesday.mp4");
           channel.send({
             content: "it is wednesday my dudes",
             files: [video],
           });
-        })
+        });
       });
     }
   );
+
+  // for bother command
+  client.lastThreeBothers = [-1, -2, -3];
+  client.updateLastThreeBothers = function (newIndex) {
+    lastThree = client.lastThreeBothers;
+
+    lastThree.push(newIndex);
+    lastThree.shift();
+
+    console.log(lastThree);
+
+    client.lastThreeBothers = lastThree;
+  };
   console.log(itIsWednesday.next());
   client.cronJob = itIsWednesday;
 });
