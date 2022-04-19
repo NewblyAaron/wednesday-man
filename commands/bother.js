@@ -1,4 +1,5 @@
 const fs = require('node:fs');
+const path = require('node:path');
 const { MessageAttachment } = require('discord.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 
@@ -29,7 +30,7 @@ module.exports = {
         } while (client.lastThreeBothers.includes(randomIndex))
         client.updateLastThreeBothers(randomIndex);
 
-        const video = media[randomIndex];
+        const video = `./bother/${media[randomIndex]}`;
         const file = new MessageAttachment(video);
         await interaction.reply({content: `${user}`, files: [file]});
 	},
