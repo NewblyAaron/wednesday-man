@@ -9,7 +9,7 @@ module.exports = {
 		const guildId = chosenChannel.guildId;
 
 		if (client.delChannel(guildId)) {
-			await interaction.reply({ content: `Set the channel to ${chosenChannel}`, ephemeral: true });
+			await interaction.reply({ content: `Removed set channel.`, ephemeral: true });
 		} else {
 			await interaction.reply({ content: `Error!`, ephemeral: true });
 		}
