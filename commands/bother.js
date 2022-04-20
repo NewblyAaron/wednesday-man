@@ -3,6 +3,10 @@ const path = require('node:path');
 const { MessageAttachment } = require('discord.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 
+function convertTZ(date, tzString) {
+    return new Date((typeof date === "string" ? new Date(date) : date).toLocaleString("en-US", {timeZone: tzString}));   
+}
+
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('bother')
@@ -13,7 +17,10 @@ module.exports = {
                 .setRequired(false)
         ),
 	async execute(interaction) {
+        const date = new Date();
+        const currentDate = convertTZ(date, "Asia/Manila");
         const client = interaction.client;
+
         var user;
         do {
             if (!(interaction.options.getUser('user') == null)) {
@@ -22,6 +29,12 @@ module.exports = {
             }
             user = interaction.guild.members.cache.random().user;
         } while (user.bot == true)
+
+        if (currentDate.getDay() == 3) {
+            const video = new MessageAttachment('./videos/wednesday.mp4');
+            await interaction.reply({ content: `it is wednesday ${user}`,  files: [video] });
+            return;
+        }
 
         const media = fs.readdirSync('./bother');
         var randomIndex = -1;
