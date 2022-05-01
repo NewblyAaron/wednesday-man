@@ -126,21 +126,21 @@ client.on("ready", async () => {
       });
     }
   );
-
-  // for bother command
-  client.lastThreeBothers = [-1, -2, -3];
-  client.updateLastThreeBothers = function (newIndex) {
-    lastThree = client.lastThreeBothers;
-
-    lastThree.push(newIndex);
-    lastThree.shift();
-
-    console.log(lastThree);
-
-    client.lastThreeBothers = lastThree;
-  };
   console.log(itIsWednesday.next());
   client.cronJob = itIsWednesday;
+
+  // for bother command
+  client.lastIndexesOfBothers = [-1, -2, -3, -4, -5];
+  client.updateLastBotherIndex = function (newIndex) {
+    lastFive = client.lastIndexesOfBothers;
+
+    lastFive.push(newIndex);
+    lastFive.shift();
+
+    console.log(lastFive);
+
+    client.lastIndexesOfBothers = lastFive;
+  };
 });
 
 client.on("interactionCreate", async (interaction) => {

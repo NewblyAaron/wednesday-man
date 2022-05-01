@@ -40,8 +40,8 @@ module.exports = {
         var randomIndex = -1;
         do {
             randomIndex = Math.floor(Math.random() * media.length);
-        } while (client.lastThreeBothers.includes(randomIndex))
-        client.updateLastThreeBothers(randomIndex);
+        } while (client.lastIndexesOfBothers.includes(randomIndex))
+        client.updateLastBotherIndex(randomIndex);
 
         const video = `./bother/${media[randomIndex]}`;
         const file = new MessageAttachment(video);
