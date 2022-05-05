@@ -30,6 +30,12 @@ module.exports = {
             user = interaction.guild.members.cache.random().user;
         } while (user.bot == true)
 
+        if (user == client.user) {
+            const photo = new MessageAttachment('./photos/bothered.webp');
+            await interaction.reply({ content: `${interaction.user}, y u bother me`,  files: [photo] });
+            return;
+        }
+
         if (currentDate.getDay() == 3) {
             const video = new MessageAttachment('./videos/wednesday.mp4');
             await interaction.reply({ content: `it is wednesday ${user}`,  files: [video] });
