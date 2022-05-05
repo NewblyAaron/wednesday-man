@@ -25,6 +25,14 @@ module.exports = {
             ephemeral_value = !isPublic;
         }
 
+        const row = new MessageActionRow()
+                .addComponents(
+                    new MessageButton()
+                        .setLabel('Read in browser')
+                        .setStyle('LINK')
+                        .setURL(sauceUrl),
+                );
+
         const sauceCode = interaction.options.getNumber('code');
         var embed, sauceUrl;
         if (!(sauceCode == null)) {
@@ -46,7 +54,7 @@ module.exports = {
                 })
                 .catch(console.log);
 
-            await interaction.reply({ embeds: [embed], ephemeral: ephemeral_value });
+            await interaction.reply({ embeds: [embed], components: [row], ephemeral: ephemeral_value });
             return;
         }
         await nhentai_api.getRandomBook()
@@ -65,14 +73,6 @@ module.exports = {
                         { name: 'Tags', value: book.tags.toString() }
                     );
             });
-
-            const row = new MessageActionRow()
-                .addComponents(
-                    new MessageButton()
-                        .setLabel('Read in browser')
-                        .setStyle('LINK')
-                        .setURL(sauceUrl),
-                );
 
 		await interaction.reply({ embeds: [embed], components: [row], ephemeral: ephemeral_value });
 	},
