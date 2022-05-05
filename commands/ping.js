@@ -10,6 +10,7 @@ module.exports = {
 		if (number == 1) {
 			console.log(`${interaction.user} is a lucky man`);
 			await interaction.reply({ content: `eyo ${interaction.user} you found a lucky easter egg` });
+			return;
 		}
 
 		await interaction.reply({ content: "Pong!", ephemeral: true });
