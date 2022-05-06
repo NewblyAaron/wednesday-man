@@ -59,6 +59,7 @@ module.exports = {
                 const file = new MessageAttachment(video);
                 if (sendToDms) {
                     await user.send({ content: `${user}`, files: [file] });
+                    await interaction.reply({ content: `we have bothered ${user}`, files: [file], ephemeral: true });
                 } else {
                     await interaction.reply({ content: `${user}`, files: [file] });
                 }
@@ -74,6 +75,7 @@ module.exports = {
             const video = new MessageAttachment('./videos/wednesday.mp4');
             if (sendToDms) {
                 await user.send({ content: `it is wednesday ${user}`, files: [video] });
+                await interaction.reply({ content: `we have told ${user} it's wednesday`, files: [file], ephemeral: true });
             } else {
                 await interaction.reply({ content: `it is wednesday ${user}`, files: [video] });
             }
@@ -91,6 +93,7 @@ module.exports = {
         const file = new MessageAttachment(video);
         if (sendToDms) {
             await user.send({ content: `${user}`, files: [file] });
+            await interaction.reply({ content: `we have bothered ${user}`, files: [file], ephemeral: true });
         } else {
             await interaction.reply({ content: `${user}`, files: [file] });
         }
