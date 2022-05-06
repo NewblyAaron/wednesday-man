@@ -20,6 +20,11 @@ module.exports = {
             vidName.setName('video_filename')
                 .setDescription("If added, gets the video given by the filename.")
                 .setRequired(false)
+        )
+        .addBooleanOption(inDMs =>
+            inDMs.setName('in_direct_messages')
+                .setDescription("If set to true, the bot sends a DM of the bother.")
+                .setRequired(false)
         ),
     async execute(interaction) {
         const date = new Date();
@@ -35,9 +40,15 @@ module.exports = {
             user = interaction.guild.members.cache.random().user;
         } while (user.bot == true)
 
+        const sendToDms = interaction.options.getBoolean('in_direct_messages');
+
         if (user == client.user) {
             const photo = new MessageAttachment('./photos/bothered.webp');
-            await interaction.reply({ content: `${interaction.user}, y u bother me`, files: [photo] });
+            if (sendToDms) {
+                await interaction.reply({ content: `${interaction.user}, y u bother me`, files: [photo], ephemeral: true });
+            } else {
+                await interaction.reply({ content: `${interaction.user}, y u bother me`, files: [photo] });
+            }
             return;
         }
 
@@ -46,7 +57,11 @@ module.exports = {
             try {
                 const video = `./bother/${vidFilename}`;
                 const file = new MessageAttachment(video);
-                await interaction.reply({ content: `${user}`, files: [file] });
+                if (sendToDms) {
+                    await user.send({ content: `${user}`, files: [file] });
+                } else {
+                    await interaction.reply({ content: `${user}`, files: [file] });
+                }
             } catch (err) {
                 console.log(err);
                 await interaction.reply({ content: `Video does not exist.`, ephemeral: true });
@@ -57,7 +72,11 @@ module.exports = {
 
         if (currentDate.getDay() == 3) {
             const video = new MessageAttachment('./videos/wednesday.mp4');
-            await interaction.reply({ content: `it is wednesday ${user}`, files: [video] });
+            if (sendToDms) {
+                await user.send({ content: `it is wednesday ${user}`, files: [video] });
+            } else {
+                await interaction.reply({ content: `it is wednesday ${user}`, files: [video] });
+            }
             return;
         }
 
@@ -70,6 +89,10 @@ module.exports = {
 
         const video = `./bother/${media[randomIndex]}`;
         const file = new MessageAttachment(video);
-        await interaction.reply({ content: `${user}`, files: [file] });
+        if (sendToDms) {
+            await user.send({ content: `${user}`, files: [file] });
+        } else {
+            await interaction.reply({ content: `${user}`, files: [file] });
+        }
     },
 };
