@@ -51,6 +51,8 @@ module.exports = {
                 console.log(err);
                 await interaction.reply({ content: `Video does not exist.`, ephemeral: true });
             }
+
+            return;
         }
 
         if (currentDate.getDay() == 3) {
