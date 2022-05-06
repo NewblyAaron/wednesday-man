@@ -130,7 +130,7 @@ client.on("ready", async () => {
   client.cronJob = itIsWednesday;
 
   // for bother command
-  client.lastIndexesOfBothers = [-1, -2, -3, -4, -5, -6, -7, -8, -9, -10];
+  client.lastIndexesOfBothers = new Array(20).fill(-1);
   client.updateLastBotherIndex = function (newIndex) {
     last = client.lastIndexesOfBothers;
 
