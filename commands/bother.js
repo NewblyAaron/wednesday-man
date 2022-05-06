@@ -58,7 +58,7 @@ module.exports = {
                 const video = `./bother/${vidFilename}`;
                 const file = new MessageAttachment(video);
                 if (sendToDms) {
-                    await user.send({ content: `${user}`, files: [file] });
+                    await user.send({ content: `${interaction.user} sent me to bother you`, files: [file] });
                     await interaction.reply({ content: `we have bothered ${user}`, files: [file], ephemeral: true });
                 } else {
                     await interaction.reply({ content: `${user}`, files: [file] });
@@ -74,7 +74,7 @@ module.exports = {
         if (currentDate.getDay() == 3) {
             const video = new MessageAttachment('./videos/wednesday.mp4');
             if (sendToDms) {
-                await user.send({ content: `it is wednesday ${user}`, files: [video] });
+                await user.send({ content: `${interaction.user} reminds you that it is wednesday`, files: [video] });
                 await interaction.reply({ content: `we have told ${user} it's wednesday`, files: [file], ephemeral: true });
             } else {
                 await interaction.reply({ content: `it is wednesday ${user}`, files: [video] });
@@ -92,7 +92,7 @@ module.exports = {
         const video = `./bother/${media[randomIndex]}`;
         const file = new MessageAttachment(video);
         if (sendToDms) {
-            await user.send({ content: `${user}`, files: [file] });
+            await user.send({ content: `${interaction.user} sent me to bother you`, files: [file] });
             await interaction.reply({ content: `we have bothered ${user}`, files: [file], ephemeral: true });
         } else {
             await interaction.reply({ content: `${user}`, files: [file] });
