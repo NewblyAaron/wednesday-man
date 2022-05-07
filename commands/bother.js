@@ -17,8 +17,8 @@ module.exports = {
                 .setRequired(false)
         )
         .addStringOption(vidName =>
-            vidName.setName('video_filename')
-                .setDescription("If added, gets the video given by the filename.")
+            vidName.setName('filename')
+                .setDescription("If added, gets the file by file name.")
                 .setRequired(false)
         )
         .addBooleanOption(inDMs =>
@@ -52,7 +52,7 @@ module.exports = {
             return;
         }
 
-        const vidFilename = interaction.options.getString('video_filename');
+        const vidFilename = interaction.options.getString('filename');
         if (!(vidFilename == null)) {
             try {
                 const video = `./bother/${vidFilename}`;
