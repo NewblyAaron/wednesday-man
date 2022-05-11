@@ -75,7 +75,7 @@ module.exports = {
             const video = new MessageAttachment('./videos/wednesday.mp4');
             if (sendToDms) {
                 await user.send({ content: `${interaction.user} reminds you that it is wednesday`, files: [video] });
-                await interaction.reply({ content: `we have told ${user} it's wednesday`, files: [file], ephemeral: true });
+                await interaction.reply({ content: `we have told ${user} it's wednesday`, ephemeral: true });
             } else {
                 await interaction.reply({ content: `it is wednesday ${user}`, files: [video] });
             }
