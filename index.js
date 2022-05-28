@@ -128,9 +128,34 @@ client.on("ready", async () => {
   );
   console.log(itIsWednesday.next());
   client.cronJob = itIsWednesday;
+  
+  const evening10_49 = Cron("00 49 22 * * *", { timezone: "Asia/Manila" }, () => {
+	  console.log("it is now evening, 10:49pm");
+
+      dbClient.query("SELECT * FROM settings", (err, res) => {
+        if (err) {
+          console.log(err);
+          return;
+        }
+
+        const rows = res.rows;
+
+        rows.forEach((row) => {
+          const guild = client.guilds.cache.get(row.guild_id);
+          const channel = guild.channels.cache.get(row.channel_id);
+
+          console.log(`good evening, it's 10:49pm to ${guild.name} @ ${channel.name}`);
+          const video = new MessageAttachment("./videos/10_49pm.mp4");
+          channel.send({
+            content: "what's up guys, uhh, good evening and shit. it's like 10:49pm",
+            files: [video],
+          });
+        });
+      });
+  });
 
   // for bother command
-  client.lastIndexesOfBothers = new Array(30).fill(-1);
+  client.lastIndexesOfBothers = new Array(50).fill(-1);
   client.updateLastBotherIndex = function (newIndex) {
     last = client.lastIndexesOfBothers;
 
