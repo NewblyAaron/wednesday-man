@@ -113,22 +113,28 @@ client.on("ready", async () => {
         const rows = res.rows;
 
         rows.forEach((row) => {
-          const guild = client.guilds.cache.get(row.guild_id);
-          const channel = guild.channels.cache.get(row.channel_id);
+			const guild = client.guilds.cache.get(row.guild_id);
+			const channel = guild.channels.cache.get(row.channel_id);
 
-          console.log(`Sending wednesday to ${guild.name} @ ${channel.name}`);
-          const video = new MessageAttachment("./videos/wednesday.mp4");
-          channel.send({
-            content: "it is wednesday my dudes",
-            files: [video],
-          });
+			try {
+				console.log(`Sending wednesday to ${guild.name} @ ${channel.name}`);
+				const video = new MessageAttachment("./videos/wednesday.mp4");
+				channel.send({
+					content: "it is wednesday my dudes",
+					files: [video],
+				});
+			} catch (err) {
+				console.log(`error sending to ${guild.name}`);
+				console.log(err);
+			}
+          
         });
       });
     }
   );
   console.log(itIsWednesday.next());
   client.cronJob = itIsWednesday;
-  
+  /* 10:49pm cron
   const evening10_49 = Cron("00 49 22 * * *", { timezone: "Asia/Manila" }, () => {
 	  console.log("it is now evening, 10:49pm");
 
@@ -141,19 +147,24 @@ client.on("ready", async () => {
         const rows = res.rows;
 
         rows.forEach((row) => {
-          const guild = client.guilds.cache.get(row.guild_id);
-          const channel = guild.channels.cache.get(row.channel_id);
-
-          console.log(`good evening, it's 10:49pm to ${guild.name} @ ${channel.name}`);
-          const video = new MessageAttachment("./videos/10_49pm.mp4");
-          channel.send({
-            content: "what's up guys, uhh, good evening and shit. it's like 10:49pm",
-            files: [video],
-          });
+			const guild = client.guilds.cache.get(row.guild_id);
+			const channel = guild.channels.cache.get(row.channel_id);
+			
+			try {
+				console.log(`good evening, it's 10:49pm to ${guild.name} @ ${channel.name}`);
+				const video = new MessageAttachment("./videos/10_49pm.mp4");
+				channel.send({
+					content: "what's up guys, uhh, good evening and shit. it's like 10:49pm",
+					files: [video],
+				});
+			} catch (err) {
+				console.log(`error sending to ${guild.name}`);
+				console.log(err);
+			}
         });
       });
   });
-
+  */
   // for bother command
   client.lastIndexesOfBothers = new Array(50).fill(-1);
   client.updateLastBotherIndex = function (newIndex) {
