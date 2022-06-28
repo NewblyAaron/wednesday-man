@@ -1,6 +1,6 @@
 const fs = require('node:fs');
 const path = require('node:path');
-const { MessageAttachment } = require('discord.js');
+const { MessageAttachment, MessageActionRow, MessageButton } = require('discord.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 
 function convertTZ(date, tzString) {
@@ -30,6 +30,14 @@ module.exports = {
         const date = new Date();
         const currentDate = convertTZ(date, "Asia/Manila");
         const client = interaction.client;
+		
+		const row = new MessageActionRow()
+            .addComponents(
+                new MessageButton()
+                    .setCustomId('bother_back')
+                    .setLabel('Bother back ⚔️')
+                    .setStyle('DANGER'),
+            );
 
         var user;
         do {
@@ -61,7 +69,7 @@ module.exports = {
                     await user.send({ content: `${interaction.user} sent me to bother you`, files: [file] });
                     await interaction.reply({ content: `we have bothered ${user}`, files: [file], ephemeral: true });
                 } else {
-                    await interaction.reply({ content: `${user}`, files: [file] });
+                    await interaction.reply({ content: `${interaction.user} has bothered ${user}!`, files: [file], components: [row] });
                 }
             } catch (err) {
                 console.log(err);
@@ -77,7 +85,7 @@ module.exports = {
                 await user.send({ content: `${interaction.user} reminds you that it is wednesday`, files: [video] });
                 await interaction.reply({ content: `we have told ${user} it's wednesday`, ephemeral: true });
             } else {
-                await interaction.reply({ content: `it is wednesday ${user}`, files: [video] });
+                await interaction.reply({ content: `${interaction.user} reminds u that it is wednesday ${user}`, files: [video], components: [row] });
             }
             return;
         }
@@ -95,7 +103,7 @@ module.exports = {
             await user.send({ content: `${interaction.user} sent me to bother you`, files: [file] });
             await interaction.reply({ content: `we have bothered ${user}`, files: [file], ephemeral: true });
         } else {
-            await interaction.reply({ content: `${user}`, files: [file] });
+            await interaction.reply({ content: `${interaction.user} has bothered ${user}!`, files: [file], components: [row] });
         }
     },
 };

@@ -5,16 +5,15 @@ const fs = require("node:fs");
 const Cron = require("croner");
 const pg = require("pg");
 const {
-  Client,
-  Collection,
-  Intents,
-  MessageAttachment,
+  Client, Collection, Intents,
+  MessageAttachment, MessageActionRow, MessageButton
 } = require("discord.js");
 const clientId = process.env.BOT_CLIENT_ID;
 const token = process.env.BOT_TOKEN;
 
 // Client Instance
 const client = new Client({ intents: [new Intents(32767)] });
+
 const dbClient = new pg.Client({
   connectionString: process.env.DATABASE_URL,
   ssl: {
@@ -194,6 +193,45 @@ client.on("interactionCreate", async (interaction) => {
       content: "There was an error while executing this command!",
       ephemeral: true,
     });
+  }
+});
+
+client.on("interactionCreate", async (interaction) => {
+  if (!interaction.isButton()) return;
+
+  if (interaction.customId == "bother_back") {
+	  var botheree = (interaction.user == interaction.message.mentions.users.first()) ? interaction.message.mentions.users.last() : interaction.message.mentions.users.first();
+	  console.log(`i: ${interaction.user.username}, be: ${botheree.username}`);
+	  
+	  if (interaction.user != interaction.message.mentions.users.first() && interaction.user != interaction.message.mentions.users.last()) {
+		  return interaction.reply({ content: `You're not the one who can bother back!`, ephemeral: true });
+	  }
+	  
+	  const currentDate = new Date();
+	  if (currentDate.getDay() == 3) {
+          const video = new MessageAttachment('./videos/wednesday.mp4');
+          await interaction.reply({ content: `${interaction.user} reminds u that it is wednesday ${botheree}`, files: [video], components: [row] });
+          return;
+      }
+	  
+	  const media = fs.readdirSync('./bother');
+      var randomIndex = -1;
+      do {
+          randomIndex = Math.floor(Math.random() * media.length);
+      } while (client.lastIndexesOfBothers.includes(randomIndex))
+      client.updateLastBotherIndex(randomIndex);
+      const video = `./bother/${media[randomIndex]}`;
+	  
+      const file = new MessageAttachment(video);
+	  const row = new MessageActionRow()
+            .addComponents(
+                new MessageButton()
+                    .setCustomId('bother_back')
+                    .setLabel('Bother back ⚔️')
+                    .setStyle('DANGER'),
+            );
+	  
+      await interaction.reply({ content: `${interaction.user} has bothered ${botheree} back!`, files: [file], components: [row] });
   }
 });
 
