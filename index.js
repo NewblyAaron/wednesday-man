@@ -246,10 +246,12 @@ client.on("interactionCreate", async (interaction) => {
 });
 
 client.on("messageCreate", async (message) => {
-	const regex = new RegExp('(tower\sof\sfantasy)');
-	if (regex.test(message.content.toLowerCase()) && message.author != client.user) {
+	const regex = new RegExp(/(tower\sof\sfantasy)/gmi);
+
+	if (regex.test(message.content) && message.author != client.user) {
+		console.log(`${message.author} has said tower of fantasy lmao`);
 		const file = new MessageAttachment('./photos/tower_of_fantasy.jpg');
-		client.user.send({ content: `tower of fantasy`, files: [file] });
+		message.channel.send({ content: `tower of fantasy`, files: [file] });
 	}
 });
 
