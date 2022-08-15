@@ -81,7 +81,17 @@ client.once("ready", () => {
           "CREATE TABLE public.settings ( guild_id text NOT NULL, channel_id text NOT NULL, CONSTRAINT settings_pk PRIMARY KEY (guild_id));",
           (err, res) => {
             if (err) {
-              console.log("An error has occured in creating the table!");
+              console.log("An error has occured in creating the settings table!");
+              console.log(err);
+              return;
+            }
+          }
+        );
+		dbClient.query(
+          "CREATE TABLE public.nword_counter ( user_id text NOT NULL, count int NOT NULL, CONSTRAINT nword_counter_pk PRIMARY KEY (user_id));",
+          (err, res) => {
+            if (err) {
+              console.log("An error has occured in creating the nword counter table!");
               console.log(err);
               return;
             }
@@ -233,6 +243,14 @@ client.on("interactionCreate", async (interaction) => {
 	  
       await interaction.reply({ content: `${interaction.user} has bothered ${botheree} back!`, files: [file], components: [row] });
   }
+});
+
+client.on("messageCreate", async (message) => {
+	const regex = new RegExp('(tower\sof\sfantasy)');
+	if (regex.test(message.content.toLowerCase()) && message.author != client.user) {
+		const file = new MessageAttachment('./photos/tower_of_fantasy.jpg');
+		client.user.send({ content: `tower of fantasy`, files: [file] });
+	}
 });
 
 client.commands = new Collection();
