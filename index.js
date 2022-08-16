@@ -257,7 +257,7 @@ client.on("messageCreate", async (message) => {
 	}
 
 	if (tofCheck(message.content) && message.author != client.user) {
-		console.log(`${message.author} has said tower of fantasy lmao`);
+		console.log(`${message.author.username} has said tower of fantasy lmao`);
 		const file = new MessageAttachment('./photos/tower_of_fantasy.jpg');
 		message.channel.send({ content: `tower of fantasy`, files: [file] });
 	}
