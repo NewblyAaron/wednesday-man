@@ -246,9 +246,17 @@ client.on("interactionCreate", async (interaction) => {
 });
 
 client.on("messageCreate", async (message) => {
-	const regex = new RegExp(/(tower\sof\sfantasy)/gmi);
+	// const regex = new RegExp(/(tower\sof\sfantasy)/gmi);
+	
+	function tofCheck(string) {
+		const tower_regex = new RegExp(/(tower)/gmi);
+		const of_regex = new RegExp(/(of)/gmi);
+		const fantasy_regex = new RegExp(/(fantasy)/gmi);
+		
+		return (tower_regex.test(string) && of_regex.test(string) && fantasy_regex.test(string)) ? true : false
+	}
 
-	if (regex.test(message.content) && message.author != client.user) {
+	if (tofCheck(message.content) && message.author != client.user) {
 		console.log(`${message.author} has said tower of fantasy lmao`);
 		const file = new MessageAttachment('./photos/tower_of_fantasy.jpg');
 		message.channel.send({ content: `tower of fantasy`, files: [file] });
