@@ -253,7 +253,7 @@ client.on("messageCreate", async (message) => {
 		const of_regex = new RegExp(/(of)/gmi);
 		const fantasy_regex = new RegExp(/(fantasy)/gmi);
 		
-		return (tower_regex.test(string) && of_regex.test(string) && fantasy_regex.test(string)) ? true : false
+		return (tower_regex.test(string.replace(/\s*/gmi, "")) && of_regex.test(string.replace(/\s*/gmi, "") && fantasy_regex.test(string.replace(/\s*/gmi, "")) ? true : false
 	}
 
 	if (tofCheck(message.content) && message.author != client.user) {
