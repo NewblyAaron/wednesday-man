@@ -270,7 +270,7 @@ client.on("messageCreate", async (message) => {
 		const n1 = new RegExp(/(nigga)/gmi);
 		const n2 = new RegExp(/(nigger)/gmi);
 		
-		return (n1.test(string.replace(/\s*/gmi, "")) && n2.test(string.replace(/\s*/gmi, ""))) ? true : false
+		return (n1.test(string.replace(/\s*/gmi, "")) || n2.test(string.replace(/\s*/gmi, ""))) ? true : false
 	}
 
 	if (nwordCheck(message.content) && message.author != client.user) {
