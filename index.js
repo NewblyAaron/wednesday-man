@@ -246,7 +246,7 @@ client.on("interactionCreate", async (interaction) => {
 });
 
 client.on("messageCreate", async (message) => {
-	// const regex = new RegExp(/(tower\sof\sfantasy)/gmi);
+	// tower of fantasy
 	
 	function tofCheck(string) {
 		const tower_regex = new RegExp(/(tower)/gmi);
@@ -260,6 +260,23 @@ client.on("messageCreate", async (message) => {
 		console.log(`${message.author.username} has said tower of fantasy lmao`);
 		const file = new MessageAttachment('./photos/tower_of_fantasy.jpg');
 		message.channel.send({ content: `tower of fantasy`, files: [file] });
+	}
+});
+
+client.on("messageCreate", async (message) => {
+	// nigg counter
+	
+	function nwordCheck(string) {
+		const n1 = new RegExp(/(nigga)/gmi);
+		const n2 = new RegExp(/(nigger)/gmi);
+		
+		return (n1.test(string.replace(/\s*/gmi, "")) && n2.test(string.replace(/\s*/gmi, ""))) ? true : false
+	}
+
+	if (nwordCheck(message.content) && message.author != client.user) {
+		console.log(`${message.author.username} is racist`);
+		const file = new MessageAttachment('./photos/n.png');
+		message.channel.send({ content: `what'chu just say???`, files: [file] });
 	}
 });
 
