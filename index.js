@@ -285,7 +285,7 @@ client.on("messageCreate", async (message) => {
 	// nigg counter
 	
 	function imCheck(string) {
-		const command = new RegExp(/($im)/gmi);
+		const command = new RegExp(/(\$im)/gmi);
 		const carlos = new RegExp(/(carlos)/gmi);
 
 		return (command.test(string.replace(/\s*/gmi, "")) && carlos.test(string.replace(/\s*/gmi, ""))) ? true : false;
