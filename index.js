@@ -6,8 +6,7 @@ const Cron = require("croner");
 const pg = require("pg");
 const {
   Client, Collection, Intents,
-  MessageAttachment, MessageActionRow, MessageButton,
-  EmbedBuilder
+  MessageAttachment, MessageActionRow, MessageButton, MessageEmbed
 } = require("discord.js");
 const clientId = process.env.BOT_CLIENT_ID;
 const token = process.env.BOT_TOKEN;
@@ -293,7 +292,7 @@ client.on("messageCreate", async (message) => {
 
 	if (imCheck(message.content) && message.author != client.user) {
 		const file = new MessageAttachment('./photos/n.png');
-		const imEmbed = new EmbedBuilder()
+		const imEmbed = new MessageEmbed()
 			.setColor(0xFF9C2C)
 			.setTitle("Carlos Miguel Barrios")
 			.setDescription("Carlos Miguel Barrios :male:\n*Animanga roulette* · **69**:tokyo_tower:\nClaim Rank: #420\nLikes: #gwyneth\nI AM THE NI- (+racism)")
