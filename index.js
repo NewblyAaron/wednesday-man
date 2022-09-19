@@ -291,12 +291,11 @@ client.on("messageCreate", async (message) => {
 	}
 
 	if (imCheck(message.content) && message.author != client.user) {
-		const file = new MessageAttachment('./photos/n.png');
 		const imEmbed = new MessageEmbed()
 			.setColor(0xFF9C2C)
 			.setTitle("Carlos Miguel Barrios")
 			.setDescription("Carlos Miguel Barrios :male:\n*Animanga roulette* · **69**:tokyo_tower:\nClaim Rank: #420\nLikes: #gwyneth\nI AM THE NI- (+racism)")
-			.setImage(file)
+			.setImage("https://cdn.discordapp.com/attachments/935186731047739415/1021450149773447168/tower_of_fantasy.jpg")
 			.setFooter({ text: "1 / 1" });
 		message.channel.send({ embeds: [imEmbed] });
 	}
