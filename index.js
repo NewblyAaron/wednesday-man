@@ -6,7 +6,8 @@ const Cron = require("croner");
 const pg = require("pg");
 const {
   Client, Collection, Intents,
-  MessageAttachment, MessageActionRow, MessageButton
+  MessageAttachment, MessageActionRow, MessageButton,
+  EmbedBuilder
 } = require("discord.js");
 const clientId = process.env.BOT_CLIENT_ID;
 const token = process.env.BOT_TOKEN;
@@ -277,6 +278,28 @@ client.on("messageCreate", async (message) => {
 		console.log(`${message.author.username} is racist`);
 		const file = new MessageAttachment('./photos/n.png');
 		message.channel.send({ content: `what'chu just say???`, files: [file] });
+	}
+});
+
+client.on("messageCreate", async (message) => {
+	// nigg counter
+	
+	function imCheck(string) {
+		const command = new RegExp(/($im)/gmi);
+		const carlos = new RegExp(/(carlos)/gmi);
+
+		return (command.test(string.replace(/\s*/gmi, "")) && carlos.test(string.replace(/\s*/gmi, ""))) ? true : false;
+	}
+
+	if (imCheck(message.content) && message.author != client.user) {
+		const file = new MessageAttachment('./photos/n.png');
+		const imEmbed = new EmbedBuilder()
+			.setColor(0xFF9C2C)
+			.setTitle("Carlos Miguel Barrios")
+			.setDescription("Carlos Miguel Barrios :male:\n*Animanga roulette* · **69**:tokyo_tower:\nClaim Rank: #420\nLikes: #gwyneth\nI AM THE NI- (+racism)")
+			.setImage(file)
+			.setFooter({ text: "1 / 1" });
+		message.channel.send({ embeds: [imEmbed] });
 	}
 });
 
