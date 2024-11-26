@@ -119,10 +119,20 @@ module.exports = {
     }
 
     const sauceCode = interaction.options.getNumber("code");
-    var pageNum = 0,
-      pageMax = (await nhentai_api.getBook(sauceCode)).pages.length;
-
     const isPublic = interaction.options.getBoolean("is_seen_by_others");
+
+    try {
+      var pageNum = 0,
+      pageMax = (await nhentai_api.getBook(sauceCode)).pages.length;
+    } catch (e) {
+      console.log(e);
+      await interaction.reply({
+        content: `There was an error communicating with the API.`,
+        ephemeral: true,
+      });
+      return;
+    }
+
     var ephemeral_value = true;
     if (!(isPublic == null)) {
       ephemeral_value = !isPublic;
