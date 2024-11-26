@@ -13,7 +13,7 @@ const clientId = process.env.BOT_CLIENT_ID;
 const token = process.env.BOT_TOKEN;
 
 // Client Instance
-const client = new Client({ intents: [new Intents(gi)] });
+const client = new Client({ intents: [new Intents(32767)] });
 
 const dbClient = new pg.Client({
   connectionString: process.env.DATABASE_URL,
