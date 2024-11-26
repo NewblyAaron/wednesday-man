@@ -150,7 +150,7 @@ client.on("ready", async () => {
     async () => {
       console.log("it is now wednesday");
       try {
-        await dbClient.connect();
+	const dbClient = await pool.connect();
         await dbClient.query("SELECT * FROM settings", (err, res) => {
           if (err) {
             console.log(err);
@@ -173,7 +173,7 @@ client.on("ready", async () => {
         });
         await dbClient.release(true);
       } catch (err) {
-        console.log(`error sending to ${guild.name}`);
+        console.log(`error sending wednesday message`);
         console.log(err);
       }
     }
@@ -212,7 +212,7 @@ client.on("ready", async () => {
   });
   */
   // for bother command
-  client.lastIndexesOfBothers = new Array(50).fill(-1);
+  client.lastIndexesOfBothers = new Array(100).fill(-1);
   client.updateLastBotherIndex = function (newIndex) {
     last = client.lastIndexesOfBothers;
 
