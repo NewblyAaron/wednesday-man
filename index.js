@@ -1,16 +1,15 @@
 // Run a web server
-const express = require('express')
-const app = express()
-const port = 8000
+const express = require("express");
+const app = express();
+const port = 8000;
 
-app.get('/', (req, res) => {
-  res.send('Hello World!')
-})
+app.get("/", (req, res) => {
+  res.send("Hello World!");
+});
 
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`)
-})
-
+  console.log(`Example app listening on port ${port}`);
+});
 
 // Requirements
 require("dotenv").config();
@@ -19,8 +18,13 @@ const fs = require("node:fs");
 const Cron = require("croner");
 const pg = require("pg");
 const {
-  Client, Collection, Intents,
-  MessageAttachment, MessageActionRow, MessageButton, MessageEmbed
+  Client,
+  Collection,
+  Intents,
+  MessageAttachment,
+  MessageActionRow,
+  MessageButton,
+  MessageEmbed,
 } = require("discord.js");
 
 const clientId = process.env.BOT_CLIENT_ID;
@@ -36,14 +40,13 @@ const dbClient = new pg.Client({
   },
 });
 
-
 // function for setting and deleting channel
 client.setChannel = async function (guildId, channelId) {
   const query = {
     text: "INSERT INTO public.settings (guild_id, channel_id) VALUES ($1, $2) ON CONFLICT (guild_id) DO UPDATE SET guild_id = excluded.guild_id, channel_id = excluded.channel_id;",
     values: [guildId, channelId],
-  }
-  
+  };
+
   try {
     await dbClient.connect();
     await dbClient.query(query);
@@ -60,8 +63,8 @@ client.delChannel = async function (guildId) {
   const query = {
     text: "DELETE FROM settings WHERE guild_id=$1",
     values: [guildId],
-  }
-  
+  };
+
   try {
     await dbClient.connect();
     const res = await dbClient.query(query);
@@ -84,45 +87,54 @@ client.once("ready", async () => {
   console.log(`Bot running as ${client.user.tag}`);
 
   // setup db
-  await dbClient.connect();
-  await dbClient.query(
-    "SELECT EXISTS ( SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'settings' );",
-    async (err, res) => {
-      if (err) {
-        console.log("An error has occured in setting up the database!");
-        console.log(err);
-        return;
-      }
+  try {
+    await dbClient.connect();
+    await dbClient.query(
+      "SELECT EXISTS ( SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'settings' );",
+      async (err, res) => {
+        if (err) {
+          console.log("An error has occured in setting up the database!");
+          console.log(err);
+          return;
+        }
 
-      if (res.rows[0].exists === false) {
-        console.log("Table not found. Creating one!");
-        await dbClient.query(
-          "CREATE TABLE public.settings ( guild_id text NOT NULL, channel_id text NOT NULL, CONSTRAINT settings_pk PRIMARY KEY (guild_id));",
-          (err, _) => {
-            if (err) {
-              console.log("An error has occured in creating the settings table!");
-              console.log(err);
-              return;
+        if (res.rows[0].exists === false) {
+          console.log("Table not found. Creating one!");
+          await dbClient.query(
+            "CREATE TABLE public.settings ( guild_id text NOT NULL, channel_id text NOT NULL, CONSTRAINT settings_pk PRIMARY KEY (guild_id));",
+            (err, _) => {
+              if (err) {
+                console.log(
+                  "An error has occured in creating the settings table!"
+                );
+                console.log(err);
+                return;
+              }
             }
-          }
-        );
-		    await dbClient.query(
-          "CREATE TABLE public.nword_counter ( user_id text NOT NULL, count int NOT NULL, CONSTRAINT nword_counter_pk PRIMARY KEY (user_id));",
-          (err, _) => {
-            if (err) {
-              console.log("An error has occured in creating the nword counter table!");
-              console.log(err);
-              return;
+          );
+          await dbClient.query(
+            "CREATE TABLE public.nword_counter ( user_id text NOT NULL, count int NOT NULL, CONSTRAINT nword_counter_pk PRIMARY KEY (user_id));",
+            (err, _) => {
+              if (err) {
+                console.log(
+                  "An error has occured in creating the nword counter table!"
+                );
+                console.log(err);
+                return;
+              }
             }
-          }
-        );
-      } else {
-        console.log("Settings table exists!");
+          );
+        } else {
+          console.log("Settings table exists!");
+        }
       }
-    }
-  );
-  await dbClient.end();
-  console.log("Database setup done!");
+    );
+    await dbClient.end();
+    console.log("Database setup done!");
+  } catch (e) {
+    console.log("Error occured during database setup!");
+    console.log(e);
+  }
 });
 
 client.on("ready", async () => {
@@ -132,35 +144,33 @@ client.on("ready", async () => {
     { timezone: "Asia/Manila" },
     async () => {
       console.log("it is now wednesday");
+      try {
+        await dbClient.connect();
+        await dbClient.query("SELECT * FROM settings", (err, res) => {
+          if (err) {
+            console.log(err);
+            return;
+          }
 
-      await dbClient.connect();
-      await dbClient.query("SELECT * FROM settings", (err, res) => {
-        if (err) {
-          console.log(err);
-          return;
-        }
+          const rows = res.rows;
 
-        const rows = res.rows;
+          rows.forEach((row) => {
+            const guild = client.guilds.cache.get(row.guild_id);
+            const channel = guild.channels.cache.get(row.channel_id);
 
-        rows.forEach((row) => {
-			const guild = client.guilds.cache.get(row.guild_id);
-			const channel = guild.channels.cache.get(row.channel_id);
-
-			try {
-				console.log(`Sending wednesday to ${guild.name} @ ${channel.name}`);
-				const video = new MessageAttachment("./videos/wednesday.mp4");
-				channel.send({
-					content: "it is wednesday my dudes",
-					files: [video],
-				});
-			} catch (err) {
-				console.log(`error sending to ${guild.name}`);
-				console.log(err);
-			}
-          
+            console.log(`Sending wednesday to ${guild.name} @ ${channel.name}`);
+            const video = new MessageAttachment("./videos/wednesday.mp4");
+            channel.send({
+              content: "it is wednesday my dudes",
+              files: [video],
+            });
+          });
         });
-      });
-      await dbClient.end();
+        await dbClient.end();
+      } catch (err) {
+        console.log(`error sending to ${guild.name}`);
+        console.log(err);
+      }
     }
   );
   console.log(itIsWednesday.next());
@@ -232,86 +242,109 @@ client.on("interactionCreate", async (interaction) => {
   if (!interaction.isButton()) return;
 
   if (interaction.customId == "bother_back") {
-	  var botheree = (interaction.user == interaction.message.mentions.users.first()) ? interaction.message.mentions.users.last() : interaction.message.mentions.users.first();
-	  console.log(`i: ${interaction.user.username}, be: ${botheree.username}`);
-	  
-	  if (interaction.user != interaction.message.mentions.users.first() && interaction.user != interaction.message.mentions.users.last()) {
-		  return interaction.reply({ content: `You're not the one who can bother back!`, ephemeral: true });
-	  }
-	  
-	  const currentDate = new Date();
-	  if (currentDate.getDay() == 3) {
-          const video = new MessageAttachment('./videos/wednesday.mp4');
-          await interaction.reply({ content: `${interaction.user} reminds u that it is wednesday ${botheree}`, files: [video], components: [row] });
-          return;
-      }
-	  
-	  const media = fs.readdirSync('./bother');
-      var randomIndex = -1;
-      do {
-          randomIndex = Math.floor(Math.random() * media.length);
-      } while (client.lastIndexesOfBothers.includes(randomIndex))
-      client.updateLastBotherIndex(randomIndex);
-      const video = `./bother/${media[randomIndex]}`;
-	  
-      const file = new MessageAttachment(video);
-	  const row = new MessageActionRow()
-            .addComponents(
-                new MessageButton()
-                    .setCustomId('bother_back')
-                    .setLabel('Bother back ⚔️')
-                    .setStyle('DANGER'),
-            );
-	  
-      await interaction.reply({ content: `${interaction.user} has bothered ${botheree} back!`, files: [file], components: [row] });
+    var botheree =
+      interaction.user == interaction.message.mentions.users.first()
+        ? interaction.message.mentions.users.last()
+        : interaction.message.mentions.users.first();
+    console.log(`i: ${interaction.user.username}, be: ${botheree.username}`);
+
+    if (
+      interaction.user != interaction.message.mentions.users.first() &&
+      interaction.user != interaction.message.mentions.users.last()
+    ) {
+      return interaction.reply({
+        content: `You're not the one who can bother back!`,
+        ephemeral: true,
+      });
+    }
+
+    const currentDate = new Date();
+    if (currentDate.getDay() == 3) {
+      const video = new MessageAttachment("./videos/wednesday.mp4");
+      await interaction.reply({
+        content: `${interaction.user} reminds u that it is wednesday ${botheree}`,
+        files: [video],
+        components: [row],
+      });
+      return;
+    }
+
+    const media = fs.readdirSync("./bother");
+    var randomIndex = -1;
+    do {
+      randomIndex = Math.floor(Math.random() * media.length);
+    } while (client.lastIndexesOfBothers.includes(randomIndex));
+    client.updateLastBotherIndex(randomIndex);
+    const video = `./bother/${media[randomIndex]}`;
+
+    const file = new MessageAttachment(video);
+    const row = new MessageActionRow().addComponents(
+      new MessageButton()
+        .setCustomId("bother_back")
+        .setLabel("Bother back ⚔️")
+        .setStyle("DANGER")
+    );
+
+    await interaction.reply({
+      content: `${interaction.user} has bothered ${botheree} back!`,
+      files: [file],
+      components: [row],
+    });
   }
 });
 
 client.on("messageCreate", async (message) => {
-	// tower of fantasy
-	
-	function tofCheck(string) {
-		const tower_regex = new RegExp(/(tower)/gmi);
-		const of_regex = new RegExp(/(of)/gmi);
-		const fantasy_regex = new RegExp(/(fantasy)/gmi);
-		
-		return (tower_regex.test(string.replace(/\s*/gmi, "")) && of_regex.test(string.replace(/\s*/gmi, "")) && fantasy_regex.test(string.replace(/\s*/gmi, ""))) ? true : false
-	}
+  // tower of fantasy
 
-	if (tofCheck(message.content) && message.author != client.user) {
-		console.log(`${message.author.username} has said tower of fantasy lmao`);
-		const file = new MessageAttachment('./photos/tower_of_fantasy.jpg');
-		message.channel.send({ content: `tower of fantasy`, files: [file] });
-	}
+  function tofCheck(string) {
+    const tower_regex = new RegExp(/(tower)/gim);
+    const of_regex = new RegExp(/(of)/gim);
+    const fantasy_regex = new RegExp(/(fantasy)/gim);
+
+    return tower_regex.test(string.replace(/\s*/gim, "")) &&
+      of_regex.test(string.replace(/\s*/gim, "")) &&
+      fantasy_regex.test(string.replace(/\s*/gim, ""))
+      ? true
+      : false;
+  }
+
+  if (tofCheck(message.content) && message.author != client.user) {
+    console.log(`${message.author.username} has said tower of fantasy lmao`);
+    const file = new MessageAttachment("./photos/tower_of_fantasy.jpg");
+    message.channel.send({ content: `tower of fantasy`, files: [file] });
+  }
 });
 
 client.on("messageCreate", async (message) => {
-	// nigg counter
-	
-	function nwordCheck(string) {
-		const n1 = new RegExp(/(nigga)/gmi);
-		const n2 = new RegExp(/(nigger)/gmi);
-		
-		return (n1.test(string.replace(/\s*/gmi, "")) || n2.test(string.replace(/\s*/gmi, ""))) ? true : false
-	}
+  // nigg counter
 
-	if (nwordCheck(message.content) && message.author != client.user) {
-		console.log(`${message.author.username} is racist`);
-		const file = new MessageAttachment('./photos/n.png');
-		message.channel.send({ content: `what'chu just say???`, files: [file] });
-	}
+  function nwordCheck(string) {
+    const n1 = new RegExp(/(nigga)/gim);
+    const n2 = new RegExp(/(nigger)/gim);
+
+    return n1.test(string.replace(/\s*/gim, "")) ||
+      n2.test(string.replace(/\s*/gim, ""))
+      ? true
+      : false;
+  }
+
+  if (nwordCheck(message.content) && message.author != client.user) {
+    console.log(`${message.author.username} is racist`);
+    const file = new MessageAttachment("./photos/n.png");
+    message.channel.send({ content: `what'chu just say???`, files: [file] });
+  }
 });
 
 // client.on("messageCreate", async (message) => {
 // 	// carlosgoddy counter
-	
+
 // 	function imCheck(string) {
 // 		const command = new RegExp(/(\$im)/gmi);
 // 		const carlos = new RegExp(/(carlos)/gmi);
 
 // 		return (command.test(string.replace(/\s*/gmi, "")) && carlos.test(string.replace(/\s*/gmi, ""))) ? true : false;
 // 	}
-	
+
 // 	function imCheckGoddy(string) {
 // 		const command = new RegExp(/(\$im)/gmi);
 // 		const godwin = new RegExp(/(godwin)/gmi);
