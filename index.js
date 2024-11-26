@@ -40,6 +40,9 @@ const pool = new pg.Pool({
   },
 });
 
+// track if someone is using /readsauce
+client.hasReadingSauce = false
+
 // function for setting and deleting channel
 client.setChannel = async function (guildId, channelId) {
   const query = {

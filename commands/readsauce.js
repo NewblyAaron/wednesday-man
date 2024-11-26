@@ -64,8 +64,6 @@ async function fetchPage(interaction, sauceCode, pageNum, ephemeral_value) {
       }
 
       const url = nhentai_api.getImageURL(book.pages[pageNum]);
-      console.log(book);
-      console.log(url);
       const embed = new MessageEmbed()
         .setTitle(`Reading **${book.title.pretty}**`)
         .setFooter({ text: `Page: ${pageNum + 1}/${book.pages.length} | ${sauceCode}`})
@@ -111,6 +109,15 @@ module.exports = {
         .setRequired(false)
     ),
   async execute(interaction) {
+    const client = interaction.client
+    if (client.hasReadingSauce) {
+      await interaction.reply({
+        content: `Someone is reading! Please try again later.`,
+        ephemeral: true,
+      });
+      return;
+    }
+
     const sauceCode = interaction.options.getNumber("code");
     var pageNum = 0,
       pageMax = (await nhentai_api.getBook(sauceCode)).pages.length;
@@ -132,6 +139,7 @@ module.exports = {
       componentType: "BUTTON",
       idle: 60000,
     });
+    client.hasReadingSauce = true
 
     collector.on("collect", async (i) => {
       if (!(interaction.user.id === i.user.id))
@@ -186,6 +194,8 @@ module.exports = {
         await wait(5000);
         await interaction.deleteReply();
       }
+
+      client.hasReadingSauce = false
     });
 
     await interaction.reply({
