@@ -33,8 +33,8 @@ const token = process.env.BOT_TOKEN;
 // Client Instance
 const client = new Client({ intents: [new Intents(32767)] });
 
-const dbClient = new pg.Client({
-  connectionString: process.env.DATABASE_URL,
+const pool = new pg.Pool({
+  connectionString: process.env.DATABASE_URL + "?sslmode=require",
   ssl: {
     rejectUnauthorized: false,
   },
@@ -48,10 +48,10 @@ client.setChannel = async function (guildId, channelId) {
   };
 
   try {
-    await dbClient.connect();
+    const dbClient = await pool.connect();
     await dbClient.query(query);
     console.log(`Successfully set ${guildId}'s channel to ${channelId}`);
-    await dbClient.end();
+    await dbClient.release(true);
     return true;
   } catch (err) {
     console.log(err);
@@ -66,7 +66,7 @@ client.delChannel = async function (guildId) {
   };
 
   try {
-    await dbClient.connect();
+    const dbClient = await pool.connect();
     const res = await dbClient.query(query);
 
     if (res.rowCount == 0) {
@@ -75,7 +75,7 @@ client.delChannel = async function (guildId) {
     }
 
     console.log(`Successfully deleted ${guildId} row`);
-    await dbClient.end();
+    await dbClient.release(true);
     return 1;
   } catch (err) {
     console.log(err);
@@ -88,7 +88,7 @@ client.once("ready", async () => {
 
   // setup db
   try {
-    await dbClient.connect();
+    const dbClient = await pool.connect();
     await dbClient.query(
       "SELECT EXISTS ( SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'settings' );",
       async (err, res) => {
@@ -127,10 +127,12 @@ client.once("ready", async () => {
         } else {
           console.log("Settings table exists!");
         }
+
+        console.log("Database setup done!");
+        await dbClient.release(true);
       }
     );
-    await dbClient.end();
-    console.log("Database setup done!");
+    
   } catch (e) {
     console.log("Error occured during database setup!");
     console.log(e);
@@ -166,7 +168,7 @@ client.on("ready", async () => {
             });
           });
         });
-        await dbClient.end();
+        await dbClient.release(true);
       } catch (err) {
         console.log(`error sending to ${guild.name}`);
         console.log(err);
