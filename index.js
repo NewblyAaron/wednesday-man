@@ -36,7 +36,6 @@ const dbClient = new pg.Client({
   },
 });
 
-dbClient.connect();
 
 // function for setting and deleting channel
 client.setChannel = async function (guildId, channelId) {
@@ -46,8 +45,10 @@ client.setChannel = async function (guildId, channelId) {
   }
   
   try {
+    await dbClient.connect();
     await dbClient.query(query);
     console.log(`Successfully set ${guildId}'s channel to ${channelId}`);
+    await dbClient.end();
     return true;
   } catch (err) {
     console.log(err);
@@ -62,6 +63,7 @@ client.delChannel = async function (guildId) {
   }
   
   try {
+    await dbClient.connect();
     const res = await dbClient.query(query);
 
     if (res.rowCount == 0) {
@@ -70,6 +72,7 @@ client.delChannel = async function (guildId) {
     }
 
     console.log(`Successfully deleted ${guildId} row`);
+    await dbClient.end();
     return 1;
   } catch (err) {
     console.log(err);
@@ -77,13 +80,14 @@ client.delChannel = async function (guildId) {
   }
 };
 
-client.once("ready", () => {
+client.once("ready", async () => {
   console.log(`Bot running as ${client.user.tag}`);
 
   // setup db
-  dbClient.query(
+  await dbClient.connect();
+  await dbClient.query(
     "SELECT EXISTS ( SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'settings' );",
-    (err, res) => {
+    async (err, res) => {
       if (err) {
         console.log("An error has occured in setting up the database!");
         console.log(err);
@@ -92,9 +96,9 @@ client.once("ready", () => {
 
       if (res.rows[0].exists === false) {
         console.log("Table not found. Creating one!");
-        dbClient.query(
+        await dbClient.query(
           "CREATE TABLE public.settings ( guild_id text NOT NULL, channel_id text NOT NULL, CONSTRAINT settings_pk PRIMARY KEY (guild_id));",
-          (err, res) => {
+          (err, _) => {
             if (err) {
               console.log("An error has occured in creating the settings table!");
               console.log(err);
@@ -102,9 +106,9 @@ client.once("ready", () => {
             }
           }
         );
-		dbClient.query(
+		    await dbClient.query(
           "CREATE TABLE public.nword_counter ( user_id text NOT NULL, count int NOT NULL, CONSTRAINT nword_counter_pk PRIMARY KEY (user_id));",
-          (err, res) => {
+          (err, _) => {
             if (err) {
               console.log("An error has occured in creating the nword counter table!");
               console.log(err);
@@ -117,6 +121,7 @@ client.once("ready", () => {
       }
     }
   );
+  await dbClient.end();
   console.log("Database setup done!");
 });
 
@@ -125,10 +130,11 @@ client.on("ready", async () => {
   const itIsWednesday = Cron(
     "00 00 00 * * 3",
     { timezone: "Asia/Manila" },
-    () => {
+    async () => {
       console.log("it is now wednesday");
 
-      dbClient.query("SELECT * FROM settings", (err, res) => {
+      await dbClient.connect();
+      await dbClient.query("SELECT * FROM settings", (err, res) => {
         if (err) {
           console.log(err);
           return;
@@ -154,6 +160,7 @@ client.on("ready", async () => {
           
         });
       });
+      await dbClient.end();
     }
   );
   console.log(itIsWednesday.next());
