@@ -4,6 +4,7 @@
   "description": "is it wednesday?",
   "main": "index.js",
   "scripts": {
+    "postinstall": "patch-package",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js"
   },
@@ -19,6 +20,7 @@
     "express": "^4.21.1",
     "nhentai-api": "^3.4.3",
     "node-gyp": "^9.0.0",
+    "patch-package": "^8.0.0",
     "pg": "^8.7.3"
   }
 }
