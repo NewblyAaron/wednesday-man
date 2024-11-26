@@ -8,11 +8,12 @@ const {
   Client, Collection, Intents,
   MessageAttachment, MessageActionRow, MessageButton, MessageEmbed
 } = require("discord.js");
+
 const clientId = process.env.BOT_CLIENT_ID;
 const token = process.env.BOT_TOKEN;
 
 // Client Instance
-const client = new Client({ intents: [new Intents(32767)] });
+const client = new Client({ intents: [new Intents(gi)] });
 
 const dbClient = new pg.Client({
   connectionString: process.env.DATABASE_URL,
@@ -280,41 +281,41 @@ client.on("messageCreate", async (message) => {
 	}
 });
 
-client.on("messageCreate", async (message) => {
-	// nigg counter
+// client.on("messageCreate", async (message) => {
+// 	// carlosgoddy counter
 	
-	function imCheck(string) {
-		const command = new RegExp(/(\$im)/gmi);
-		const carlos = new RegExp(/(carlos)/gmi);
+// 	function imCheck(string) {
+// 		const command = new RegExp(/(\$im)/gmi);
+// 		const carlos = new RegExp(/(carlos)/gmi);
 
-		return (command.test(string.replace(/\s*/gmi, "")) && carlos.test(string.replace(/\s*/gmi, ""))) ? true : false;
-	}
+// 		return (command.test(string.replace(/\s*/gmi, "")) && carlos.test(string.replace(/\s*/gmi, ""))) ? true : false;
+// 	}
 	
-	function imCheckGoddy(string) {
-		const command = new RegExp(/(\$im)/gmi);
-		const godwin = new RegExp(/(godwin)/gmi);
+// 	function imCheckGoddy(string) {
+// 		const command = new RegExp(/(\$im)/gmi);
+// 		const godwin = new RegExp(/(godwin)/gmi);
 
-		return (command.test(string.replace(/\s*/gmi, "")) && godwin.test(string.replace(/\s*/gmi, ""))) ? true : false;
-	}
+// 		return (command.test(string.replace(/\s*/gmi, "")) && godwin.test(string.replace(/\s*/gmi, ""))) ? true : false;
+// 	}
 
-	if (imCheck(message.content) && message.author != client.user) {
-		const imEmbed = new MessageEmbed()
-			.setColor(0xFF9C2C)
-			.setTitle("Carlos Miguel Barrios")
-			.setDescription("Carlos Miguel Barrios :male_sign:\n*Animanigga roulette* · **69**:tokyo_tower:\nClaim Rank: #5\nLike Rank: #371221\nI AM THE NI- (+28)")
-			.setImage("https://cdn.discordapp.com/attachments/935186731047739415/1021450149773447168/tower_of_fantasy.jpg")
-			.setFooter({ text: "1 / 1" });
-		message.channel.send({ embeds: [imEmbed] });
-	} else if (imCheckGoddy(message.content) && message.author != client.user) {
-		const imEmbed = new MessageEmbed()
-			.setColor(0xFF9C2C)
-			.setTitle("Godwin Manzanilla")
-			.setDescription("Godwin Manzanilla :male_sign:\n*Animanigga roulette* · **69**:dark_sunglasses:\nClaim Rank: #9\nLike Rank: #13789\n:sunglasses: (+8)")
-			.setImage("https://cdn.discordapp.com/attachments/761805649604378647/1021452687595806840/godd8.png")
-			.setFooter({ text: "1 / 1" });
-		message.channel.send({ embeds: [imEmbed] });
-	}
-});
+// 	if (imCheck(message.content) && message.author != client.user) {
+// 		const imEmbed = new MessageEmbed()
+// 			.setColor(0xFF9C2C)
+// 			.setTitle("Carlos Miguel Barrios")
+// 			.setDescription("Carlos Miguel Barrios :male_sign:\n*Animanigga roulette* · **69**:tokyo_tower:\nClaim Rank: #5\nLike Rank: #371221\nI AM THE NI- (+28)")
+// 			.setImage("https://cdn.discordapp.com/attachments/935186731047739415/1021450149773447168/tower_of_fantasy.jpg")
+// 			.setFooter({ text: "1 / 1" });
+// 		message.channel.send({ embeds: [imEmbed] });
+// 	} else if (imCheckGoddy(message.content) && message.author != client.user) {
+// 		const imEmbed = new MessageEmbed()
+// 			.setColor(0xFF9C2C)
+// 			.setTitle("Godwin Manzanilla")
+// 			.setDescription("Godwin Manzanilla :male_sign:\n*Animanigga roulette* · **69**:dark_sunglasses:\nClaim Rank: #9\nLike Rank: #13789\n:sunglasses: (+8)")
+// 			.setImage("https://cdn.discordapp.com/attachments/761805649604378647/1021452687595806840/godd8.png")
+// 			.setFooter({ text: "1 / 1" });
+// 		message.channel.send({ embeds: [imEmbed] });
+// 	}
+// });
 
 client.commands = new Collection();
 const commandFiles = fs
