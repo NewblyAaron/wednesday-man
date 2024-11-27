@@ -1,109 +1,193 @@
-const fs = require('node:fs');
-const path = require('node:path');
-const { MessageAttachment, MessageActionRow, MessageButton } = require('discord.js');
-const { SlashCommandBuilder } = require('@discordjs/builders');
+const fs = require("node:fs");
+const path = require("node:path");
+const {
+  SlashCommandBuilder,
+  ActionRowBuilder,
+  ButtonBuilder,
+} = require("@discordjs/builders");
+const { ButtonStyle, AttachmentBuilder } = require("discord.js");
+
+const photosFolderPath = path.join(__dirname, "..", "photos");
+const videosFolderPath = path.join(__dirname, "..", "videos");
+const botherFolderPath = path.join(__dirname, "..", "bother");
 
 function convertTZ(date, tzString) {
-    return new Date((typeof date === "string" ? new Date(date) : date).toLocaleString("en-US", { timeZone: tzString }));
+  return new Date(
+    (typeof date === "string" ? new Date(date) : date).toLocaleString("en-US", {
+      timeZone: tzString,
+    }),
+  );
+}
+
+function getBotherFileChoices() {
+  const botherFiles = fs.readdirSync(botherFolderPath);
+  const fileChoices = [];
+
+  for (const file of botherFiles) {
+    fileChoices.push(file);
+  }
+
+  return fileChoices;
 }
 
 module.exports = {
-    data: new SlashCommandBuilder()
-        .setName('bother')
-        .setDescription('Mentions a random person with a random video.')
-        .addUserOption(user =>
-            user.setName('user')
-                .setDescription('If added, mentions that user instead')
-                .setRequired(false)
-        )
-        .addStringOption(vidName =>
-            vidName.setName('filename')
-                .setDescription("If added, gets the file by file name.")
-                .setRequired(false)
-        )
-        .addBooleanOption(inDMs =>
-            inDMs.setName('in_direct_messages')
-                .setDescription("If set to true, the bot sends a DM of the bother.")
-                .setRequired(false)
-        ),
-    async execute(interaction) {
-        const date = new Date();
-        const currentDate = convertTZ(date, "Asia/Manila");
-        const client = interaction.client;
-		
-		const row = new MessageActionRow()
-            .addComponents(
-                new MessageButton()
-                    .setCustomId('bother_back')
-                    .setLabel('Bother back ⚔️')
-                    .setStyle('DANGER'),
-            );
+  data: new SlashCommandBuilder()
+    .setName("bother")
+    .setDescription("Mentions a random person with a random video.")
+    .addUserOption((user) =>
+      user
+        .setName("user")
+        .setDescription("If added, mentions that user instead")
+        .setRequired(false),
+    )
+    .addStringOption((vidName) =>
+      vidName
+        .setName("filename")
+        .setDescription("If added, gets the file by file name.")
+        .setAutocomplete(true)
+        .setRequired(false),
+    )
+    .addBooleanOption((inDMs) =>
+      inDMs
+        .setName("in_direct_messages")
+        .setDescription("If set to true, the bot sends a DM of the bother.")
+        .setRequired(false),
+    ),
+  async autocomplete(interaction) {
+    const focusedValue = interaction.options.getFocused();
+    const choices = getBotherFileChoices();
+    const filtered = choices.filter((choice) =>
+      choice.toLowerCase().startsWith(focusedValue.toLowerCase()),
+    );
+    filtered.length = Math.min(filtered.length, 25);
 
-        var user;
-        do {
-            if (!(interaction.options.getUser('user') == null)) {
-                user = interaction.options.getUser('user');
-                break;
-            }
-            user = interaction.guild.members.cache.random().user;
-        } while (user.bot == true)
+    console.log(`suggestions: ${filtered}`);
 
-        const sendToDms = interaction.options.getBoolean('in_direct_messages');
+    await interaction.respond(
+      filtered.map((choice) => ({ name: choice, value: choice })),
+    );
+  },
+  async execute(interaction) {
+    const date = new Date();
+    const currentDate = convertTZ(date, "Asia/Manila");
+    const client = interaction.client;
 
-        if (user == client.user) {
-            const photo = new MessageAttachment('./photos/bothered.webp');
-            if (sendToDms) {
-                await interaction.reply({ content: `${interaction.user}, y u bother me`, files: [photo], ephemeral: true });
-            } else {
-                await interaction.reply({ content: `${interaction.user}, y u bother me`, files: [photo] });
-            }
-            return;
-        }
+    const botherBackButton = new ButtonBuilder()
+      .setCustomId("bother_back")
+      .setLabel("Bother back ⚔️")
+      .setStyle(ButtonStyle.Danger);
+    const row = new ActionRowBuilder().addComponents(botherBackButton);
 
-        const vidFilename = interaction.options.getString('filename');
-        if (!(vidFilename == null)) {
-            try {
-                const video = `./bother/${vidFilename}`;
-                const file = new MessageAttachment(video);
-                if (sendToDms) {
-                    await user.send({ content: `${interaction.user} sent me to bother you`, files: [file] });
-                    await interaction.reply({ content: `we have bothered ${user}`, files: [file], ephemeral: true });
-                } else {
-                    await interaction.reply({ content: `${interaction.user} has bothered ${user}!`, files: [file], components: [row] });
-                }
-            } catch (err) {
-                console.log(err);
-                await interaction.reply({ content: `Video does not exist.`, ephemeral: true });
-            }
+    let user;
+    do {
+      if (!(interaction.options.getUser("user") == null)) {
+        user = interaction.options.getUser("user");
+        break;
+      }
+      user = interaction.guild.members.cache.random().user;
+    } while (user.bot == true);
 
-            return;
-        }
+    const sendToDms = interaction.options.getBoolean("in_direct_messages");
 
-        if (currentDate.getDay() == 3) {
-            const video = new MessageAttachment('./videos/wednesday.mp4');
-            if (sendToDms) {
-                await user.send({ content: `${interaction.user} reminds you that it is wednesday`, files: [video] });
-                await interaction.reply({ content: `we have told ${user} it's wednesday`, ephemeral: true });
-            } else {
-                await interaction.reply({ content: `${interaction.user} reminds u that it is wednesday ${user}`, files: [video], components: [row] });
-            }
-            return;
-        }
+    if (user == client.user) {
+      const botheredFilePath = path.join(photosFolderPath, "bothered.webp");
+      const photo = new AttachmentBuilder(botheredFilePath);
+      if (sendToDms) {
+        await interaction.reply({
+          content: `${interaction.user}, y u bother me`,
+          files: [photo],
+          ephemeral: true,
+        });
+      } else {
+        await interaction.reply({
+          content: `${interaction.user}, y u bother me`,
+          files: [photo],
+        });
+      }
+      return;
+    }
 
-        const media = fs.readdirSync('./bother');
-        var randomIndex = -1;
-        do {
-            randomIndex = Math.floor(Math.random() * media.length);
-        } while (client.lastIndexesOfBothers.includes(randomIndex))
-        client.updateLastBotherIndex(randomIndex);
-
-        const video = `./bother/${media[randomIndex]}`;
-        const file = new MessageAttachment(video);
+    const fileName = interaction.options.getString("filename");
+    if (fileName != null) {
+      try {
+        const filePath = path.join(botherFolderPath, fileName);
+        const file = new AttachmentBuilder(filePath);
         if (sendToDms) {
-            await user.send({ content: `${interaction.user} sent me to bother you`, files: [file] });
-            await interaction.reply({ content: `we have bothered ${user}`, files: [file], ephemeral: true });
+          await user.send({
+            content: `${interaction.user} sent me to bother you`,
+            files: [file],
+          });
+          await interaction.reply({
+            content: `we have bothered ${user}`,
+            files: [file],
+            ephemeral: true,
+          });
         } else {
-            await interaction.reply({ content: `${interaction.user} has bothered ${user}!`, files: [file], components: [row] });
+          await interaction.reply({
+            content: `${interaction.user} has bothered ${user}!`,
+            files: [file],
+            components: [row],
+          });
         }
-    },
+      } catch (err) {
+        console.error(err);
+        await interaction.reply({
+          content: "File does not exist.",
+          ephemeral: true,
+        });
+      }
+
+      return;
+    }
+
+    if (currentDate.getDay() == 3) {
+      const videoFilePath = path.join(videosFolderPath, "wednesday.mp4");
+      const video = new AttachmentBuilder(videoFilePath);
+      if (sendToDms) {
+        await user.send({
+          content: `${interaction.user} reminds you that it is wednesday`,
+          files: [video],
+        });
+        await interaction.reply({
+          content: `we have told ${user} it's wednesday`,
+          ephemeral: true,
+        });
+      } else {
+        await interaction.reply({
+          content: `${interaction.user} reminds u that it is wednesday ${user}`,
+          files: [video],
+          components: [row],
+        });
+      }
+      return;
+    }
+
+    const botherFiles = fs.readdirSync(botherFolderPath);
+
+    let randomIndex = -1;
+    do {
+      randomIndex = Math.floor(Math.random() * botherFiles.length);
+    } while (client.lastIndexesOfBothers.includes(randomIndex));
+    client.updateLastBotherIndex(randomIndex);
+
+    const filePath = path.join(botherFolderPath, botherFiles[randomIndex]);
+    const file = new AttachmentBuilder(filePath);
+    if (sendToDms) {
+      await user.send({
+        content: `${interaction.user} sent me to bother you`,
+        files: [file],
+      });
+      await interaction.reply({
+        content: `we have bothered ${user}`,
+        files: [file],
+        ephemeral: true,
+      });
+    } else {
+      await interaction.reply({
+        content: `${interaction.user} has bothered ${user}!`,
+        files: [file],
+        components: [row],
+      });
+    }
+  },
 };
