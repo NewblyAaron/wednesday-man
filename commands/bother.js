@@ -80,12 +80,13 @@ module.exports = {
 
     let user;
     do {
-      if (!(interaction.options.getUser("user") == null)) {
+      if (interaction.options.getUser("user") != null) {
         user = interaction.options.getUser("user");
         break;
       }
+      await interaction.guild.members.fetch();
       user = interaction.guild.members.cache.random().user;
-    } while (user.bot == true);
+    } while (user.bot == true || user == interaction.user);
 
     const sendToDms = interaction.options.getBoolean("in_direct_messages");
 
