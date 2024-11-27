@@ -264,6 +264,13 @@ client.on("interactionCreate", async (interaction) => {
     }
 
     const currentDate = new Date();
+    const row = new MessageActionRow().addComponents(
+      new MessageButton()
+        .setCustomId("bother_back")
+        .setLabel("Bother back ⚔️")
+        .setStyle("DANGER")
+    );
+
     if (currentDate.getDay() == 3) {
       const video = new MessageAttachment("./videos/wednesday.mp4");
       await interaction.reply({
@@ -283,13 +290,7 @@ client.on("interactionCreate", async (interaction) => {
     const video = `./bother/${media[randomIndex]}`;
 
     const file = new MessageAttachment(video);
-    const row = new MessageActionRow().addComponents(
-      new MessageButton()
-        .setCustomId("bother_back")
-        .setLabel("Bother back ⚔️")
-        .setStyle("DANGER")
-    );
-
+    
     await interaction.reply({
       content: `${interaction.user} has bothered ${botheree} back!`,
       files: [file],
