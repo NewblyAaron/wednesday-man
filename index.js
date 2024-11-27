@@ -1,4 +1,4 @@
-// Run a web server
+// Run a web server for Koyeb
 const express = require("express");
 const app = express();
 const port = 8000;
@@ -8,31 +8,24 @@ app.get("/", (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+  console.log(`Web server listening on port ${port}`);
 });
 
-// Requirements
+// discord.js dependencies
 require("dotenv").config();
 
 const fs = require("node:fs");
+const path = require("node:path");
 const Cron = require("croner");
 const pg = require("pg");
 const {
   Client,
   Collection,
-  Intents,
-  MessageAttachment,
-  MessageActionRow,
-  MessageButton,
-  MessageEmbed,
+  GatewayIntentBits,
+  AttachmentBuilder,
 } = require("discord.js");
 
-const clientId = process.env.BOT_CLIENT_ID;
-const token = process.env.BOT_TOKEN;
-
-// Client Instance
-const client = new Client({ intents: [new Intents(32767)] });
-
+// postgresql database connection
 const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL + "?sslmode=require",
   ssl: {
@@ -40,10 +33,31 @@ const pool = new pg.Pool({
   },
 });
 
-// track if someone is using /readsauce
-client.hasReadingSauce = false
+// discord.js bot
+const token = process.env.BOT_TOKEN;
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildMembers,
+  ],
+});
 
-// function for setting and deleting channel
+// track if someone is using /readsauce
+client.hasReadingSauce = false;
+
+// for bother command:
+// do not repeat the same video from the past 100 videos
+client.lastIndexesOfBothers = new Array(100).fill(-1);
+client.updateLastBotherIndex = function (newIndex) {
+  client.lastIndexesOfBothers.push(newIndex);
+  client.lastIndexesOfBothers.shift();
+
+  console.log(client.lastIndexesOfBothers);
+};
+
+// function for setting and deleting channel to send wednesday
 client.setChannel = async function (guildId, channelId) {
   const query = {
     text: "INSERT INTO public.settings (guild_id, channel_id) VALUES ($1, $2) ON CONFLICT (guild_id) DO UPDATE SET guild_id = excluded.guild_id, channel_id = excluded.channel_id;",
@@ -86,10 +100,8 @@ client.delChannel = async function (guildId) {
   }
 };
 
-client.once("ready", async () => {
-  console.log(`Bot running as ${client.user.tag}`);
-
-  // setup db
+// setup db
+client.setupDb = async function () {
   try {
     const dbClient = await pool.connect();
     await dbClient.query(
@@ -108,24 +120,24 @@ client.once("ready", async () => {
             (err, _) => {
               if (err) {
                 console.log(
-                  "An error has occured in creating the settings table!"
+                  "An error has occured in creating the settings table!",
                 );
                 console.log(err);
                 return;
               }
-            }
+            },
           );
           await dbClient.query(
             "CREATE TABLE public.nword_counter ( user_id text NOT NULL, count int NOT NULL, CONSTRAINT nword_counter_pk PRIMARY KEY (user_id));",
             (err, _) => {
               if (err) {
                 console.log(
-                  "An error has occured in creating the nword counter table!"
+                  "An error has occured in creating the nword counter table!",
                 );
                 console.log(err);
                 return;
               }
-            }
+            },
           );
         } else {
           console.log("Settings table exists!");
@@ -133,24 +145,23 @@ client.once("ready", async () => {
 
         console.log("Database setup done!");
         await dbClient.release(true);
-      }
+      },
     );
-    
   } catch (e) {
     console.log("Error occured during database setup!");
     console.log(e);
   }
-});
+};
 
-client.on("ready", async () => {
-  // wednesday checker
+// setup wednesday cron job
+client.setupWednesdayCron = async function () {
   const itIsWednesday = Cron(
     "00 00 00 * * 3",
     { timezone: "Asia/Manila" },
     async () => {
       console.log("it is now wednesday");
       try {
-	const dbClient = await pool.connect();
+        const dbClient = await pool.connect();
         await dbClient.query("SELECT * FROM settings", (err, res) => {
           if (err) {
             console.log(err);
@@ -164,7 +175,12 @@ client.on("ready", async () => {
             const channel = guild.channels.cache.get(row.channel_id);
 
             console.log(`Sending wednesday to ${guild.name} @ ${channel.name}`);
-            const video = new MessageAttachment("./videos/wednesday.mp4");
+            const wednesdayVideoPath = path.join(
+              __dirname,
+              "videos",
+              "wednesday.mp4",
+            );
+            const video = new AttachmentBuilder(wednesdayVideoPath);
             channel.send({
               content: "it is wednesday my dudes",
               files: [video],
@@ -173,218 +189,53 @@ client.on("ready", async () => {
         });
         await dbClient.release(true);
       } catch (err) {
-        console.log(`error sending wednesday message`);
+        console.log("error sending wednesday message");
         console.log(err);
       }
-    }
+    },
   );
-  console.log(itIsWednesday.next());
   client.cronJob = itIsWednesday;
-  /* 10:49pm cron
-  const evening10_49 = Cron("00 49 22 * * *", { timezone: "Asia/Manila" }, () => {
-	  console.log("it is now evening, 10:49pm");
 
-      dbClient.query("SELECT * FROM settings", (err, res) => {
-        if (err) {
-          console.log(err);
-          return;
-        }
+  console.log(`Next Wednesday: ${itIsWednesday.next()}`);
+};
 
-        const rows = res.rows;
-
-        rows.forEach((row) => {
-			const guild = client.guilds.cache.get(row.guild_id);
-			const channel = guild.channels.cache.get(row.channel_id);
-			
-			try {
-				console.log(`good evening, it's 10:49pm to ${guild.name} @ ${channel.name}`);
-				const video = new MessageAttachment("./videos/10_49pm.mp4");
-				channel.send({
-					content: "what's up guys, uhh, good evening and shit. it's like 10:49pm",
-					files: [video],
-				});
-			} catch (err) {
-				console.log(`error sending to ${guild.name}`);
-				console.log(err);
-			}
-        });
-      });
-  });
-  */
-  // for bother command
-  client.lastIndexesOfBothers = new Array(100).fill(-1);
-  client.updateLastBotherIndex = function (newIndex) {
-    last = client.lastIndexesOfBothers;
-
-    last.push(newIndex);
-    last.shift();
-
-    console.log(last);
-
-    client.lastIndexesOfBothers = last;
-  };
-});
-
-client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isCommand()) return;
-
-  const command = client.commands.get(interaction.commandName);
-
-  if (!command) return;
-
-  try {
-    await command.execute(interaction);
-  } catch (error) {
-    console.error(error);
-    await interaction.reply({
-      content: "There was an error while executing this command!",
-      ephemeral: true,
-    });
-  }
-});
-
-client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isButton()) return;
-
-  if (interaction.customId == "bother_back") {
-    var botheree =
-      interaction.user == interaction.message.mentions.users.first()
-        ? interaction.message.mentions.users.last()
-        : interaction.message.mentions.users.first();
-    console.log(`i: ${interaction.user.username}, be: ${botheree.username}`);
-
-    if (
-      interaction.user != interaction.message.mentions.users.first() &&
-      interaction.user != interaction.message.mentions.users.last()
-    ) {
-      return interaction.reply({
-        content: `You're not the one who can bother back!`,
-        ephemeral: true,
-      });
-    }
-
-    const currentDate = new Date();
-    const row = new MessageActionRow().addComponents(
-      new MessageButton()
-        .setCustomId("bother_back")
-        .setLabel("Bother back ⚔️")
-        .setStyle("DANGER")
-    );
-
-    if (currentDate.getDay() == 3) {
-      const video = new MessageAttachment("./videos/wednesday.mp4");
-      await interaction.reply({
-        content: `${interaction.user} reminds u that it is wednesday ${botheree}`,
-        files: [video],
-        components: [row],
-      });
-      return;
-    }
-
-    const media = fs.readdirSync("./bother");
-    var randomIndex = -1;
-    do {
-      randomIndex = Math.floor(Math.random() * media.length);
-    } while (client.lastIndexesOfBothers.includes(randomIndex));
-    client.updateLastBotherIndex(randomIndex);
-    const video = `./bother/${media[randomIndex]}`;
-
-    const file = new MessageAttachment(video);
-    
-    await interaction.reply({
-      content: `${interaction.user} has bothered ${botheree} back!`,
-      files: [file],
-      components: [row],
-    });
-  }
-});
-
-client.on("messageCreate", async (message) => {
-  // tower of fantasy
-
-  function tofCheck(string) {
-    const tower_regex = new RegExp(/(tower)/gim);
-    const of_regex = new RegExp(/(of)/gim);
-    const fantasy_regex = new RegExp(/(fantasy)/gim);
-
-    return tower_regex.test(string.replace(/\s*/gim, "")) &&
-      of_regex.test(string.replace(/\s*/gim, "")) &&
-      fantasy_regex.test(string.replace(/\s*/gim, ""))
-      ? true
-      : false;
-  }
-
-  if (tofCheck(message.content) && message.author != client.user) {
-    console.log(`${message.author.username} has said tower of fantasy lmao`);
-    const file = new MessageAttachment("./photos/tower_of_fantasy.jpg");
-    message.channel.send({ content: `tower of fantasy`, files: [file] });
-  }
-});
-
-client.on("messageCreate", async (message) => {
-  // nigg counter
-
-  function nwordCheck(string) {
-    const n1 = new RegExp(/(nigga)/gim);
-    const n2 = new RegExp(/(nigger)/gim);
-
-    return n1.test(string.replace(/\s*/gim, "")) ||
-      n2.test(string.replace(/\s*/gim, ""))
-      ? true
-      : false;
-  }
-
-  if (nwordCheck(message.content) && message.author != client.user) {
-    console.log(`${message.author.username} is racist`);
-    const file = new MessageAttachment("./photos/n.png");
-    message.channel.send({ content: `what'chu just say???`, files: [file] });
-  }
-});
-
-// client.on("messageCreate", async (message) => {
-// 	// carlosgoddy counter
-
-// 	function imCheck(string) {
-// 		const command = new RegExp(/(\$im)/gmi);
-// 		const carlos = new RegExp(/(carlos)/gmi);
-
-// 		return (command.test(string.replace(/\s*/gmi, "")) && carlos.test(string.replace(/\s*/gmi, ""))) ? true : false;
-// 	}
-
-// 	function imCheckGoddy(string) {
-// 		const command = new RegExp(/(\$im)/gmi);
-// 		const godwin = new RegExp(/(godwin)/gmi);
-
-// 		return (command.test(string.replace(/\s*/gmi, "")) && godwin.test(string.replace(/\s*/gmi, ""))) ? true : false;
-// 	}
-
-// 	if (imCheck(message.content) && message.author != client.user) {
-// 		const imEmbed = new MessageEmbed()
-// 			.setColor(0xFF9C2C)
-// 			.setTitle("Carlos Miguel Barrios")
-// 			.setDescription("Carlos Miguel Barrios :male_sign:\n*Animanigga roulette* · **69**:tokyo_tower:\nClaim Rank: #5\nLike Rank: #371221\nI AM THE NI- (+28)")
-// 			.setImage("https://cdn.discordapp.com/attachments/935186731047739415/1021450149773447168/tower_of_fantasy.jpg")
-// 			.setFooter({ text: "1 / 1" });
-// 		message.channel.send({ embeds: [imEmbed] });
-// 	} else if (imCheckGoddy(message.content) && message.author != client.user) {
-// 		const imEmbed = new MessageEmbed()
-// 			.setColor(0xFF9C2C)
-// 			.setTitle("Godwin Manzanilla")
-// 			.setDescription("Godwin Manzanilla :male_sign:\n*Animanigga roulette* · **69**:dark_sunglasses:\nClaim Rank: #9\nLike Rank: #13789\n:sunglasses: (+8)")
-// 			.setImage("https://cdn.discordapp.com/attachments/761805649604378647/1021452687595806840/godd8.png")
-// 			.setFooter({ text: "1 / 1" });
-// 		message.channel.send({ embeds: [imEmbed] });
-// 	}
-// });
-
+// setup slash commands
 client.commands = new Collection();
+
+const commandFolderPath = path.join(__dirname, "commands");
 const commandFiles = fs
-  .readdirSync("./commands")
+  .readdirSync(commandFolderPath)
   .filter((file) => file.endsWith(".js"));
 
 for (const file of commandFiles) {
-  const command = require(`./commands/${file}`);
-  client.commands.set(command.data.name, command);
+  console.log(`loading command ${file}`);
+  const filePath = path.join(commandFolderPath, file);
+  const command = require(filePath);
+
+  if ("data" in command && "execute" in command) {
+    client.commands.set(command.data.name, command);
+  } else {
+    console.log(
+      `[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`,
+    );
+  }
+}
+
+// setup events
+const eventsPath = path.join(__dirname, "events");
+const eventFiles = fs
+  .readdirSync(eventsPath)
+  .filter((file) => file.endsWith(".js"));
+
+for (const file of eventFiles) {
+  console.log(`loading event ${file}`);
+  const filePath = path.join(eventsPath, file);
+  const event = require(filePath);
+  if (event.once) {
+    client.once(event.name, (...args) => event.execute(...args));
+  } else {
+    client.on(event.name, (...args) => event.execute(...args));
+  }
 }
 
 // Login to Discord
