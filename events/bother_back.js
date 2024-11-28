@@ -63,7 +63,7 @@ module.exports = {
       const file = new AttachmentBuilder(filePath);
 
       await interaction.reply({
-        content: `${interaction.user} has bothered ${botheree} back!\n\nfilename: ${botherFiles[randomIndex]}`,
+        content: `${interaction.user} has bothered ${botheree} back!\n\nfilename: \`${botherFiles[randomIndex]}\``,
         files: [file],
         components: [row],
       });

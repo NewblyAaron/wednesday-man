@@ -125,7 +125,7 @@ module.exports = {
           });
         } else {
           await interaction.reply({
-            content: `${interaction.user} has bothered ${user}!\n\nfilename: ${fileName}`,
+            content: `${interaction.user} has bothered ${user}!\n\nfilename: \`${fileName}\``,
             files: [file],
             components: [row],
           });
@@ -185,7 +185,7 @@ module.exports = {
       });
     } else {
       await interaction.reply({
-        content: `${interaction.user} has bothered ${user}!\n\nfilename: ${botherFiles[randomIndex]}`,
+        content: `${interaction.user} has bothered ${user}!\n\nfilename: \`${botherFiles[randomIndex]}\``,
         files: [file],
         components: [row],
       });
