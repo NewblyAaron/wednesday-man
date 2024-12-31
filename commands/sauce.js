@@ -1,4 +1,4 @@
-const { API } = require("nhentai-api");
+const { API, TagTypes } = require("nhentai-api");
 const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, EmbedBuilder } = require("@discordjs/builders");
 const { ButtonStyle } = require("discord.js");
 
@@ -25,13 +25,13 @@ module.exports = {
 
     const isPublic = interaction.options.getBoolean("is_seen_by_others");
     let ephemeral_value = true;
-    if (!(isPublic == null)) {
+    if (isPublic != null) {
       ephemeral_value = !isPublic;
     }
 
-    const sauceCode = interaction.options.getNumber("code");
+    const sauceCode = interaction.options.getNumber("code") ?? "";
     let embed, sauceUrl;
-    if (!(sauceCode == null)) {
+    if (sauceCode != "") {
       await nhentai_api
         .getBook(sauceCode)
         .then((book) => {
