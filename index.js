@@ -104,7 +104,7 @@ client.delChannel = async function (guildId) {
 client.setupDb = async function () {
   try {
     const dbClient = await pool.connect();
-    await dbClient.query(
+    dbClient.query(
       "SELECT EXISTS ( SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'settings' );",
       async (err, res) => {
         if (err) {
@@ -162,16 +162,19 @@ client.setupWednesdayCron = async function () {
       console.log("it is now wednesday");
       try {
         const dbClient = await pool.connect();
-        await dbClient.query("SELECT * FROM settings", (err, res) => {
+        dbClient.query("SELECT * FROM settings", async (err, res) => {
           if (err) {
             console.log(err);
             return;
           }
 
-          const rows = res.rows;
+          await client.guilds.fetch();
 
-          rows.forEach((row) => {
+          const rows = res.rows;
+          rows.forEach(async (row) => {
             const guild = client.guilds.cache.get(row.guild_id);
+
+            await guild.channels.fetch();
             const channel = guild.channels.cache.get(row.channel_id);
 
             console.log(`Sending wednesday to ${guild.name} @ ${channel.name}`);
@@ -181,7 +184,7 @@ client.setupWednesdayCron = async function () {
               "wednesday.mp4",
             );
             const video = new AttachmentBuilder(wednesdayVideoPath);
-            channel.send({
+            await channel.send({
               content: "it is wednesday my dudes",
               files: [video],
             });

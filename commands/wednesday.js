@@ -1,6 +1,8 @@
-const Cron = require("croner");
+const path = require("node:path");
 const { AttachmentBuilder } = require("discord.js");
 const { SlashCommandBuilder } = require("@discordjs/builders");
+
+const videosFolderPath = path.join(__dirname, "..", "videos");
 
 function convertTZ(date, tzString) {
   return new Date(
@@ -36,7 +38,7 @@ module.exports = {
       currentDate.getDay() == 3 ||
       interaction.options.getBoolean("always_wednesday")
     ) {
-      const wednesdayVideoPath = path.join(__dirname, "..", "videos", "wednesday.mp4");
+      const wednesdayVideoPath = path.join(videosFolderPath, "wednesday.mp4");
       const video = new AttachmentBuilder(wednesdayVideoPath);
       await interaction.reply({
         content: "it is wednesday my dudes",
