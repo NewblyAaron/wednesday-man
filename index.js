@@ -78,7 +78,7 @@ client.setChannel = async function (guildId, channelId) {
 
 client.delChannel = async function (guildId) {
   const query = {
-    text: "DELETE FROM settings WHERE guild_id=$1",
+    text: "DELETE FROM public.settings WHERE guild_id=$1",
     values: [guildId],
   };
 
@@ -146,7 +146,7 @@ client.setupWednesdayCron = async function () {
       console.log("it is now wednesday");
       try {
         const dbClient = await pool.connect();
-        const res = await dbClient.query("SELECT * FROM setttings");
+        const res = await dbClient.query("SELECT * FROM public.settings");
 
         await client.guilds.fetch();
         await Promise.all(res.rows.map(async (row) => {
