@@ -68,7 +68,7 @@ client.setChannel = async function (guildId, channelId) {
     const dbClient = await pool.connect();
     await dbClient.query(query);
     console.log(`Successfully set ${guildId}'s channel to ${channelId}`);
-    await dbClient.release(true);
+    dbClient.release(true);
     return true;
   } catch (err) {
     console.log(err);
@@ -92,7 +92,7 @@ client.delChannel = async function (guildId) {
     }
 
     console.log(`Successfully deleted ${guildId} row`);
-    await dbClient.release(true);
+    dbClient.release(true);
     return 1;
   } catch (err) {
     console.log(err);
@@ -104,52 +104,36 @@ client.delChannel = async function (guildId) {
 client.setupDb = async function () {
   try {
     const dbClient = await pool.connect();
-    dbClient.query(
-      "SELECT EXISTS ( SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'settings' );",
-      async (err, res) => {
-        if (err) {
-          console.log("An error has occured in setting up the database!");
-          console.log(err);
-          return;
-        }
 
-        if (res.rows[0].exists === false) {
-          console.log("Table not found. Creating one!");
-          await dbClient.query(
-            "CREATE TABLE public.settings ( guild_id text NOT NULL, channel_id text NOT NULL, CONSTRAINT settings_pk PRIMARY KEY (guild_id));",
-            (err, _) => {
-              if (err) {
-                console.log(
-                  "An error has occured in creating the settings table!",
-                );
-                console.log(err);
-                return;
-              }
-            },
-          );
-          await dbClient.query(
-            "CREATE TABLE public.nword_counter ( user_id text NOT NULL, count int NOT NULL, CONSTRAINT nword_counter_pk PRIMARY KEY (user_id));",
-            (err, _) => {
-              if (err) {
-                console.log(
-                  "An error has occured in creating the nword counter table!",
-                );
-                console.log(err);
-                return;
-              }
-            },
-          );
-        } else {
-          console.log("Settings table exists!");
-        }
-
-        console.log("Database setup done!");
-        await dbClient.release(true);
-      },
+    // setup settings
+    const settingsResponse = await dbClient.query(
+      "SELECT EXISTS ( SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'settings' );"
     );
-  } catch (e) {
+
+    if (settingsResponse.rows[0].exists === false) {
+      console.log("Settings table not found. Creating one!");
+      await dbClient.query(
+        "CREATE TABLE public.settings ( guild_id text NOT NULL, channel_id text NOT NULL, CONSTRAINT settings_pk PRIMARY KEY (guild_id));"
+      );
+    }
+
+    // setup nword counter
+    const nwordCounterResponse = await dbClient.query(
+      "SELECT EXISTS ( SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'nword_counter' );"
+    );
+
+    if (nwordCounterResponse.rows[0].exists === false) {
+      console.log("N-word counter table not found. Creating one!");
+      await dbClient.query(
+        "CREATE TABLE public.nword_counter ( user_id text NOT NULL, count int NOT NULL, CONSTRAINT nword_counter_pk PRIMARY KEY (user_id));"
+      );
+    }
+
+    dbClient.release();
+    console.log("Database setup done!")
+  } catch (err) {
     console.log("Error occured during database setup!");
-    console.log(e);
+    console.log(err);
   }
 };
 
@@ -162,35 +146,30 @@ client.setupWednesdayCron = async function () {
       console.log("it is now wednesday");
       try {
         const dbClient = await pool.connect();
-        dbClient.query("SELECT * FROM settings", async (err, res) => {
-          if (err) {
-            console.log(err);
-            return;
-          }
+        const res = await dbClient.query("SELECT * FROM setttings");
 
-          await client.guilds.fetch();
+        await client.guilds.fetch();
+        await Promise.all(res.rows.map(async (row) => {
+          const guild = client.guilds.cache.get(row.guild_id);
+          await guild.channels.fetch();
 
-          const rows = res.rows;
-          rows.forEach(async (row) => {
-            const guild = client.guilds.cache.get(row.guild_id);
+          const channel = guild.channels.cache.get(row.channel_id);
+          const wednesdayVideoPath = path.join(
+            __dirname,
+            "videos",
+            "wednesday.mp4"
+          );
+          const video = new AttachmentBuilder(wednesdayVideoPath);
 
-            await guild.channels.fetch();
-            const channel = guild.channels.cache.get(row.channel_id);
-
-            console.log(`Sending wednesday to ${guild.name} @ ${channel.name}`);
-            const wednesdayVideoPath = path.join(
-              __dirname,
-              "videos",
-              "wednesday.mp4",
-            );
-            const video = new AttachmentBuilder(wednesdayVideoPath);
-            await channel.send({
-              content: "it is wednesday my dudes",
-              files: [video],
-            });
+          console.log(`Sending wednesday to ${guild.name} @ ${channel.name}`);
+          await channel.send({
+            content: "it is wednesday my dudes",
+            files: [video],
           });
-        });
-        await dbClient.release(true);
+        }));
+
+        console.log("sent all wednesday messages!");
+        dbClient.release();
       } catch (err) {
         console.log("error sending wednesday message");
         console.log(err);
